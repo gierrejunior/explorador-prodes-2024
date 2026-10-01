@@ -32,11 +32,13 @@ com **e**. A frase acima dos números descreve sempre o que está na tela.
 Cada comparação tem o próprio botão de leitura, com três estados, que decide como
 contar um pixel que pertence a mais de uma classe daquela comparação:
 
-| | o que faz | soma |
+| | o que você vê | soma |
 |---|---|---|
-| **separado** | cada combinação com nome próprio: "Pequena + Grande" à parte | fecha com o total |
-| **agrupado** | todas as sobreposições numa classe só — mede o conflito | fecha com o total |
-| **somado** | o pixel conta em todas as classes a que pertence | passa do total, de propósito |
+| **cada combinação** | "Pequena + Grande" aparece separada de "Grande" — mostra QUAIS se sobrepõem | fecha com o total |
+| **sobreposições juntas** | tudo que se sobrepõe vira a classe "Sobreposição" — mostra QUANTO há de conflito | fecha com o total |
+| **total por classe** | "Grande" já inclui o que divide pixel com "Pequena" — mostra QUANTO há de cada classe | passa do total, de propósito |
+
+Há botões **ⓘ** espalhados pelos controles explicando cada um.
 
 Dá para usar modos diferentes em cada comparação. O botão **Baixar PNG** salva o
 gráfico como está na tela.

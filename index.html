@@ -21,6 +21,16 @@ h1{font-size:21px;margin:0 0 4px;color:var(--verde)}
 .chip[data-e="1"] .m{color:var(--aceso)}
 .chip[data-e="2"]{border-color:var(--apagado);color:var(--apagado)}
 .chip[data-e="2"] .m{color:var(--apagado)}
+.info{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+ padding:0;border-radius:50%;border:1px solid var(--linha);background:var(--fundo);
+ color:var(--suave);font-size:10.5px;font-style:italic;font-weight:700;cursor:pointer;
+ line-height:1;margin-left:5px;vertical-align:middle}
+.info:hover{border-color:var(--verde);color:var(--verde)}
+.balao{position:fixed;z-index:30;max-width:320px;background:var(--fundo);
+ border:1px solid var(--linha);border-left:3px solid var(--verde);border-radius:9px;
+ padding:10px 13px;font-size:12.5px;line-height:1.55;color:var(--tinta);
+ box-shadow:0 8px 26px rgba(0,0,0,.2)}
+.balao b{color:var(--verde)}
 .leitura{border:1px solid var(--linha);border-radius:9px;padding:9px 12px;
  margin-bottom:11px;background:var(--painel)}
 .leitura .rot{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;
@@ -58,16 +68,16 @@ filtros somam com <b>ou</b>; entre grupos, com <b>e</b>. A frase abaixo descreve
 está na tela.</p>
 <div class="grade">
 <div>
-  <div class="cx"><h3>1. Universo</h3>
+  <div class="cx"><h3>1. Universo <span id="iUni"></span></h3>
     <button id="uMestre" aria-pressed="true">Brasil inteiro</button>
     <button id="uRecorte" aria-pressed="false">Só desmatamento 2024</button>
   </div>
-  <div class="cx"><h3>2. Estado</h3>
+  <div class="cx"><h3>2. Estado <span id="iUF"></span></h3>
     <select id="selUF" style="width:100%"></select>
     <div id="ufInfo" style="font-size:11.5px;color:var(--suave);margin-top:7px"></div>
   </div>
   <div style="font-size:11px;letter-spacing:1px;color:var(--suave);text-transform:uppercase;
-   margin:14px 0 7px">Filtrar</div>
+   margin:14px 0 7px">Filtrar <span id="iFiltrar"></span></div>
   <div id="filtros"></div>
   <div class="cx"><h3>Uso do solo</h3><div id="fclasses"></div></div>
   <div class="cx"><button id="limpar">Limpar todos os filtros</button></div>
@@ -82,7 +92,7 @@ está na tela.</p>
     <div class="k"><b id="kComb">—</b><span>combinações distintas</span></div>
   </div>
   <div class="ctrl">
-    <label style="font-weight:600;color:var(--tinta)">Separar por</label>
+    <label style="font-weight:600;color:var(--tinta)">Separar por</label><span id="iSeparar"></span>
     <span id="eixos"></span>
     <button id="addEixo" title="da terceira em diante o gráfico muda para Sankey, que é o único que desenha várias colunas">+ comparação</button>
     <button id="vTree" aria-pressed="true">Treemap</button>
@@ -110,6 +120,7 @@ const tip=document.getElementById('tip');
 const PAL=['#175345','#2B6A8F','#B36E38','#7E5A9B','#2E7D5B','#C0512F','#C9A227','#5C8374',
            '#8C6D62','#4A7C8C','#9B6A4F','#6B7C81'];
 
+const EXPLICA = {"Desmatamento": "O que o PRODES/INPE apontou como desmatamento no ano de 2024. O ano PRODES vai de agosto a julho, não coincide com o ano civil.", "Cadastro": "Se o pixel está dentro de algum imóvel declarado no CAR (base de agosto). O CAR é autodeclaratório e tem imóveis sobrepostos — por isso um mesmo pixel pode pertencer a dois imóveis de portes diferentes.", "Aderência do CAR ao SIGEF+SNCI": "Compara o imóvel do CAR com a parcela fundiária certificada. Conforme é 90% ou mais de sobreposição. Atenção: a geometria aqui é a do CAR, não a da parcela — para o contorno da parcela, use o grupo SIGEF+SNCI.", "Tamanho do imóvel": "Classificação do imóvel do CAR em módulos fiscais: pequena até 4, média acima de 4 e até 15, grande acima de 15. Só foi calculada para os 267.102 imóveis que cruzam o desmatamento de 2024.", "Categorias territoriais": "As doze destinações públicas mais o CAR. Não são exclusivas entre si: há áreas com dupla designação, e elas aparecem como combinação.", "SIGEF+SNCI (contorno da parcela)": "O contorno da parcela fundiária certificada, independente de haver CAR por cima. É diferente da aderência: aqui a geometria é a da parcela. O SNCI é o sistema legado do SIGEF.", "Uso do solo": "A classe do MapBiomas Coleção 11 para o ano de 2025, em todo pixel do Brasil — inclusive fora do desmatamento."};
 function montaFiltros(){
   const c=document.getElementById('filtros'); c.innerHTML='';
   for(const [g,bits] of D.grupos){
@@ -124,6 +135,8 @@ function montaFiltros(){
         s.querySelector('.m').textContent=e===0?'·':(e===1?'+':'−'); calcula();};
       d.appendChild(s);
     }
+    const h=d.querySelector('h3');
+    if(EXPLICA[g]) h.appendChild(info(EXPLICA[g], g));
     c.appendChild(d);
   }
   const fc=document.getElementById('fclasses');
@@ -172,11 +185,17 @@ function passa(v){
 let eixos = [{d:'territorial', m:'sep'}, {d:'mapbiomas', m:'sep'}];
 const dim = i => eixos[i].d;
 const MODOS = ['sep','agr','som'];
-const ROTMODO = {sep:'separado', agr:'agrupado', som:'somado'};
+const ROTMODO = {sep:'cada combinação', agr:'sobreposições juntas', som:'total por classe'};
 const DICAMODO = {
-  sep:'cada combinação com nome próprio: "Pequena + Grande" aparece à parte',
-  agr:'todas as sobreposições numa classe só — mede o conflito sem espalhá-lo',
-  som:'cada pixel conta em todas as classes a que pertence; a soma passa do total'};
+  sep:'Você vê cada combinação com nome próprio — "Pequena + Grande" aparece '+
+      'separada de "Grande". Serve para saber QUAIS classes se sobrepõem. A soma '+
+      'fecha com o total.',
+  agr:'Todas as sobreposições viram uma classe só, "Sobreposição". Serve para '+
+      'medir QUANTO há de conflito, sem se perder em qual com qual. A soma fecha '+
+      'com o total.',
+  som:'Cada pixel entra em todas as classes a que pertence: "Grande" já inclui o '+
+      'que divide pixel com "Pequena". Serve para saber QUANTO há de cada classe '+
+      'ao todo. A soma passa do total, de propósito.'};
 function opcoesDim(sel, val){
   sel.innerHTML='';
   for(const [k,v] of Object.entries(D.dimensoes)){
@@ -215,6 +234,11 @@ function montaEixos(){
       e.m=MODOS[i2]; pinta(); calcula();
     };
     w.appendChild(m);
+    w.appendChild(info(
+      '<b>cada combinação</b> — '+DICAMODO.sep+'<br><br>'+
+      '<b>sobreposições juntas</b> — '+DICAMODO.agr+'<br><br>'+
+      '<b>total por classe</b> — '+DICAMODO.som,
+      'Como contar um pixel que está em mais de uma classe'));
     if(eixos.length>1){
       const b=document.createElement('button');
       b.textContent='×'; b.title='remover esta comparação';
@@ -734,6 +758,26 @@ function sankeyN(S){
   return o;
 }
 
+function info(texto, titulo){
+  // Um ⓘ que abre a explicação ali mesmo. Espalhado pelos controles, porque
+  // nome curto nenhum carrega sozinho a diferença entre as três leituras.
+  const b=document.createElement('button');
+  b.className='info'; b.textContent='i';
+  b.setAttribute('aria-label','o que é isto');
+  b.onclick=(ev)=>{
+    ev.stopPropagation();
+    document.querySelectorAll('.balao').forEach(x=>x.remove());
+    const d=document.createElement('div'); d.className='balao';
+    d.innerHTML=(titulo?`<b>${titulo}</b><br>`:'')+texto;
+    document.body.appendChild(d);
+    const r=b.getBoundingClientRect();
+    d.style.left=Math.min(r.left, innerWidth-330)+'px';
+    d.style.top=(r.bottom+6)+'px';
+    const fecha=()=>{d.remove(); document.removeEventListener('click',fecha);};
+    setTimeout(()=>document.addEventListener('click',fecha),0);
+  };
+  return b;
+}
 function quebra(txt,lim){
   // Truncar com reticências perde o fim do nome. Quebrar em duas linhas
   // preserva a informação; só a partir da terceira é que se corta.
@@ -939,6 +983,21 @@ function baixarPNG(){
 }
 document.getElementById('baixarPNG').onclick=baixarPNG;
 
+(function(){
+  const põe=(id,t,tit)=>{const e=document.getElementById(id); if(e) e.appendChild(info(t,tit));};
+  põe('iUni','<b>Brasil inteiro</b> traz todos os pixels do país, desmatados ou não — '+
+    'serve para medir proporções, como "quanto da Terra Indígena foi desmatado". '+
+    '<b>Só desmatamento 2024</b> restringe à mancha do PRODES.','Universo');
+  põe('iUF','Recorta tudo para um estado. Com um estado escolhido, os percentuais passam '+
+    'a ser dele, e um cartão à parte mostra o peso daquele recorte no Brasil.','Estado');
+  põe('iFiltrar','Define o que ENTRA na conta. Um clique no chip exige a classe (+), dois '+
+    'a proíbem (−), três voltam a indiferente. Dentro de um mesmo grupo os filtros somam '+
+    'com <b>ou</b>; entre grupos, com <b>e</b> — assim "dentro de alguma UC" é um clique '+
+    'em cada UC, não a interseção das seis.','Filtrar');
+  põe('iSeparar','Define como o que entrou é QUEBRADO no gráfico. Cada comparação tem o '+
+    'próprio botão de leitura ao lado. Da terceira em diante só o Sankey desenha.',
+    'Separar por');
+})();
 montaFiltros(); montaEixos(); montaUF(); sincLeitura(); sincUF();
 
 // Autoconferencia: abra o arquivo com ?validar no fim do endereco.
