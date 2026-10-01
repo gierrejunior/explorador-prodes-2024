@@ -29,11 +29,17 @@ de 2025 nessa área.
 que entrou. Dentro de um mesmo grupo os filtros somam com **ou**; entre grupos,
 com **e**. A frase acima dos números descreve sempre o que está na tela.
 
-Cada comparação tem o próprio botão **separado / somado**, que decide como contar
-um pixel que pertence a mais de uma classe daquela comparação. Separado: cada pixel
-numa classe só, as sobreposições viram classe própria, a soma fecha com o total.
-Somado: o pixel conta em todas a que pertence, e a soma passa do total de propósito.
-Dá para somar numa comparação e separar na outra.
+Cada comparação tem o próprio botão de leitura, com três estados, que decide como
+contar um pixel que pertence a mais de uma classe daquela comparação:
+
+| | o que faz | soma |
+|---|---|---|
+| **separado** | cada combinação com nome próprio: "Pequena + Grande" à parte | fecha com o total |
+| **agrupado** | todas as sobreposições numa classe só — mede o conflito | fecha com o total |
+| **somado** | o pixel conta em todas as classes a que pertence | passa do total, de propósito |
+
+Dá para usar modos diferentes em cada comparação. O botão **Baixar PNG** salva o
+gráfico como está na tela.
 
 No Sankey toda comparação é separada, por imposição do próprio gráfico: ele precisa
 que o que sai de uma coluna seja exatamente o que entra na seguinte.

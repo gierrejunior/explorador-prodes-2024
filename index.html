@@ -90,6 +90,7 @@ está na tela.</p>
     <button id="vAnel" aria-pressed="false">Pizza + anel</button>
     <button id="vSank" aria-pressed="false">Sankey</button>
     <button id="baixar">Baixar CSV</button>
+    <button id="baixarPNG" title="salva o gráfico como está, em PNG">Baixar PNG</button>
   </div>
   <div id="aviso" style="display:none;border:1px solid var(--apagado);border-left-width:4px;
    border-radius:8px;padding:10px 13px;margin-bottom:11px;font-size:12.5px;
@@ -164,8 +165,18 @@ function passa(v){
 // é a largura da tela, não o dado.
 // Cada comparação carrega o próprio modo de leitura: dá para somar numa e
 // separar na outra, que é como as perguntas realmente aparecem.
-let eixos = [{d:'territorial', inc:false}, {d:'mapbiomas', inc:false}];
+// Três leituras por comparação, pedidas em sequência pelo time:
+//   separado  cada combinação com nome próprio ("Pequena + Grande")
+//   agrupado  todas as sobreposições numa classe só, que mede o conflito
+//   somado    o pixel entra em todas as classes a que pertence
+let eixos = [{d:'territorial', m:'sep'}, {d:'mapbiomas', m:'sep'}];
 const dim = i => eixos[i].d;
+const MODOS = ['sep','agr','som'];
+const ROTMODO = {sep:'separado', agr:'agrupado', som:'somado'};
+const DICAMODO = {
+  sep:'cada combinação com nome próprio: "Pequena + Grande" aparece à parte',
+  agr:'todas as sobreposições numa classe só — mede o conflito sem espalhá-lo',
+  som:'cada pixel conta em todas as classes a que pertence; a soma passa do total'};
 function opcoesDim(sel, val){
   sel.innerHTML='';
   for(const [k,v] of Object.entries(D.dimensoes)){
@@ -188,17 +199,21 @@ function montaEixos(){
     const m=document.createElement('button');
     m.style.cssText='padding:3px 8px;font-size:11px;border-radius:6px';
     const pinta=()=>{
-      m.textContent = e.inc ? 'somado' : 'separado';
-      m.setAttribute('aria-pressed', e.inc);
-      m.disabled = noSankey;
-      m.style.opacity = noSankey?0.45:1;
+      m.textContent = ROTMODO[e.m];
+      m.setAttribute('aria-pressed', e.m!=='sep');
+      const trava = noSankey && e.m==='som';
+      m.disabled = false;
+      m.style.opacity = 1;
       m.title = noSankey
-        ? 'no Sankey toda comparação é separada: ele precisa que o que sai de uma coluna seja o que entra na seguinte'
-        : (e.inc ? 'cada pixel conta em todas as classes desta comparação'
-                 : 'cada pixel numa classe só; as sobreposições viram classe própria');
+        ? DICAMODO[e.m]+' · no Sankey o modo somado não existe: ele precisa que o que sai de uma coluna seja o que entra na seguinte'
+        : DICAMODO[e.m];
     };
     pinta();
-    m.onclick=()=>{ if(noSankey) return; e.inc=!e.inc; pinta(); calcula(); };
+    m.onclick=()=>{
+      let i2=(MODOS.indexOf(e.m)+1)%MODOS.length;
+      if(vis==='sank' && MODOS[i2]==='som') i2=0;   // somado não existe no Sankey
+      e.m=MODOS[i2]; pinta(); calcula();
+    };
     w.appendChild(m);
     if(eixos.length>1){
       const b=document.createElement('button');
@@ -215,7 +230,7 @@ function montaEixos(){
 }
 function sincLeitura(){
   // No Sankey toda comparação volta a separada, pela mesma razão geométrica.
-  if(vis==='sank') eixos.forEach(e=>e.inc=false);
+  if(vis==='sank') eixos.forEach(e=>{ if(e.m==='som') e.m='sep'; });
   montaEixos(); calcula();
 }
 document.getElementById('addEixo').onclick=()=>{
@@ -262,9 +277,9 @@ function frase(area){
   if(partes.length) t += ', filtrado por ' + partes.join(' <span class="ou">e</span> ');
   t += `: <b>${fmt(area)} ha</b>.`;
   t += ' Separado por ' + eixos.map(e=>
-        `<b>${D.dimensoes[e.d].rotulo}</b> <span class="ou">(${e.inc?'somado':'separado'})</span>`
+        `<b>${D.dimensoes[e.d].rotulo}</b> <span class="ou">(${ROTMODO[e.m]})</span>`
       ).join(' › ');
-  const alg=eixos.some(e=>e.inc);
+  const alg=eixos.some(e=>e.m==='som');
   t += alg
     ? `. Nas comparações <b>somadas</b> o pixel entra em todas as classes a que pertence, então a soma passa do total.`
     : `. Em todas, cada pixel entra numa classe só e a soma fecha com o total.`;
@@ -286,6 +301,15 @@ function rotulosDim(dim,v){
   const ac=d.bits.filter(([b])=>(v>>>b)&1);
   return ac.length?ac.map(x=>x[1]):[d.vazio||'Nenhum'];
 }
+function rotuloAgr(dimn,v){
+  // Agrupado: o que se quer saber é quanto há de sobreposição, não quais.
+  const d=D.dimensoes[dimn];
+  if(d.tipo==='classe') return rotuloDim(dimn,v);
+  const ac=d.bits.filter(([b])=>(v>>>b)&1);
+  if(!ac.length) return d.vazio||'Nenhum';
+  if(ac.length===1) return ac[0][1];
+  return 'Sobreposição';
+}
 function rotuloDim(dim,v){
   const d=D.dimensoes[dim];
   if(d.tipo==='classe'){const c=v&127; return (D.classes[c]||['Classe '+c])[0];}
@@ -299,21 +323,24 @@ function calcula(){
   const T=D[universo]; let area=0,comb=0; const mapa=new Map();
   const d1=dim(0), d2=eixos.length>1?dim(1):'—';
   const d3=eixos.length>2?dim(2):'—';
-  const i1=eixos[0].inc, i2=eixos.length>1?eixos[1].inc:false;
+  const m1=eixos[0].m, m2=eixos.length>1?eixos[1].m:'sep';
+  const rot1=(v)=>m1==='som'?rotulosDim(d1,v):[m1==='agr'?rotuloAgr(d1,v):rotuloDim(d1,v)];
+  const rot2=(v)=>m2==='som'?rotulosDim(d2,v):[m2==='agr'?rotuloAgr(d2,v):rotuloDim(d2,v)];
   window.__eixos=eixos;
   // O terceiro nivel so alimenta o Sankey. Nos outros desenhos as folhas SAO as
   // combinacoes: medido, 3 eixos dao 4x mais folhas e MENOS area visivel, porque
   // o excedente vira lasca. No Sankey as colunas seguem com poucos nos.
   const fl23=new Map();
   for(const [v,u,a] of T){ if(!passaUF(u)||!passa(v)) continue; area+=a; comb++;
-    const k1s=i1?rotulosDim(d1,v):[rotuloDim(d1,v)];
-    const k2s=d2==='—'?[null]:(i2?rotulosDim(d2,v):[rotuloDim(d2,v)]);
+    const k1s=rot1(v);
+    const k2s=d2==='—'?[null]:rot2(v);
     for(const k1 of k1s){
       if(!mapa.has(k1)) mapa.set(k1,{total:0,filhos:new Map()});
       const n=mapa.get(k1); n.total+=a;
       for(const k2 of k2s){ if(k2===null) continue;
         n.filhos.set(k2,(n.filhos.get(k2)||0)+a);
-        if(d3!=='—'&&!i1&&!i2){const k3=rotuloDim(d3,v), ch=k2+'\u0000'+k3;
+        if(d3!=='—'&&m1!=='som'&&m2!=='som'){
+          const k3=eixos[2].m==='agr'?rotuloAgr(d3,v):rotuloDim(d3,v), ch=k2+'\u0000'+k3;
           fl23.set(ch,(fl23.get(ch)||0)+a);}}
     }
   }
@@ -325,7 +352,7 @@ function calcula(){
       const v=reg[0], u=(reg.length>2?reg[1]:0), a2=reg[reg.length-1];
       if(reg.length>2 && !passaUF(u)) continue;
       if(!passa(v)) continue;
-      const ks=eixos.map(e=>rotuloDim(e.d,v));
+      const ks=eixos.map(e=>e.m==='agr'?rotuloAgr(e.d,v):rotuloDim(e.d,v));
       ks.forEach((k,i)=>cols[i].set(k,(cols[i].get(k)||0)+a2));
       for(let i=0;i<ks.length-1;i++){
         const ch=ks[i]+'\u0000'+ks[i+1];
@@ -339,7 +366,7 @@ function calcula(){
   // fracao do desmatamento e quase sempre o que se quer citar.
   if(TOT_DES===null) TOT_DES=D.recorte.reduce((s,r)=>s+r[r.length-1],0);
   frase(area);
-  const inclusivo=eixos.some(e=>e.inc);
+  const inclusivo=eixos.some(e=>e.m==='som');
   const so2024=[d1,d2].some(k=>D.dimensoes[k]&&D.dimensoes[k].vazio);
   const av=document.getElementById('aviso');
   if(so2024 && universo==='mestre' && estado[7]!==1){
@@ -871,6 +898,47 @@ function sincUF(){
     fc.appendChild(sp);});
   calcula();
 }
+
+// ---- baixar o gráfico em PNG ---------------------------------------------
+// O SVG usa variáveis CSS, que não sobrevivem à serialização: o canvas
+// desenharia sem cor. Antes de serializar, cada var(--x) é trocada pelo valor
+// computado. Tudo local, sem rede — funciona igual no Pages e offline.
+function baixarPNG(){
+  const svg=document.getElementById('g');
+  const cs=getComputedStyle(document.documentElement);
+  const vars={};
+  for(const n of ['--tinta','--verde','--suave','--linha','--fundo','--painel','--apagado'])
+    vars[n]=cs.getPropertyValue(n).trim()||'#000';
+  let txt=new XMLSerializer().serializeToString(svg);
+  txt=txt.replace(/var\((--[a-z]+)\)/g,(m,n)=>vars[n]||'#000');
+  const vb=svg.getAttribute('viewBox').split(' ').map(Number);
+  const esc=2;                                   // 2x para não sair borrado
+  const W=vb[2]*esc, H=vb[3]*esc;
+  const cab=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" `+
+            `viewBox="${vb.join(' ')}">`+
+            `<rect width="100%" height="100%" fill="${vars['--fundo']}"/>`;
+  txt=cab+txt.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'')+'</svg>';
+  const img=new Image();
+  img.onload=()=>{
+    const c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d');
+    x.fillStyle=vars['--fundo']; x.fillRect(0,0,W,H);
+    x.drawImage(img,0,0,W,H);
+    c.toBlob(b=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);
+      const eixosNome=eixos.map(e=>D.dimensoes[e.d].rotulo.replace(/[^\wÀ-ú]+/g,'-')).join('_');
+      const uf=(typeof ufSel!=='undefined'&&ufSel)?('_'+(ufSel===99?'semUF':D.ufs[ufSel-1])):'';
+      a.download=`prodes2024_${vis}_${eixosNome}${uf}.png`;
+      a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    },'image/png');
+  };
+  img.onerror=()=>alert('Não consegui gerar o PNG neste navegador. '+
+                        'O CSV continua disponível no botão ao lado.');
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(txt);
+}
+document.getElementById('baixarPNG').onclick=baixarPNG;
+
 montaFiltros(); montaEixos(); montaUF(); sincLeitura(); sincUF();
 
 // Autoconferencia: abra o arquivo com ?validar no fim do endereco.
