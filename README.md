@@ -133,6 +133,25 @@ Temporária e Lavoura Perene, por isso os códigos 19 e 36 entram nos grupos.
 **Fora do MapBiomas** (código 0, sem classificação) fica à parte, com o
 próprio nome. Links copiados antes desta opção abrem no detalhado, como eram.
 
+Além de treemap, sunburst, pizza e Sankey, há três gráficos:
+
+- **Barras** — uma barra por categoria da comparação 1, dividida pela
+  comparação 2, em hectares ou em 100% (para comparar a composição). É o mais
+  fácil de ler: comprimento se compara melhor que área ou ângulo.
+- **Sobreposições** — cada coluna é uma combinação de categorias da
+  comparação 1 (as bolinhas dizem quais estão juntas no mesmo pixel; a barra,
+  quantos hectares). À esquerda, o total de cada categoria, contando a
+  sobreposição.
+- **% desmatado** — quanto de cada categoria da comparação 1 foi desmatado em
+  2024: área desmatada ÷ área total da categoria, sempre sobre o Brasil
+  inteiro, com os filtros escolhidos menos o de desmatamento. Aderência e
+  tamanho não entram: só existem dentro do desmatamento e dariam 100% por
+  construção.
+
+A **calculadora de sobreposição** recebe categorias de qualquer grupo e mostra
+a união (em pelo menos uma), a interseção (em todas), quanto se contaria a mais
+somando as áreas isoladas, e como a união se divide.
+
 O seletor **Tema**, no alto da página, escolhe claro, escuro ou automático — o
 automático segue o modo claro ou escuro do computador ou do celular.
 
