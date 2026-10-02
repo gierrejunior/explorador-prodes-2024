@@ -117,6 +117,7 @@ APP, Reserva Legal e parcela SNCI pública.</p>
    background:var(--painel);color:var(--tinta)"></div>
   <svg id="g" viewBox="0 0 900 560"></svg>
   <table id="tab"></table>
+  <div id="calc" class="cx" style="margin-top:14px"></div>
 </div>
 </div><div id="tip"></div>
 <script>
@@ -378,9 +379,15 @@ function calcula(){
   // combinacoes: medido, 3 eixos dao 4x mais folhas e MENOS area visivel, porque
   // o excedente vira lasca. No Sankey as colunas seguem com poucos nos.
   const fl23=new Map();
-  let multi=0;
+  let multi=0; const incl=new Map();
+  const dd1=D.dimensoes[d1], bits1=(dd1&&dd1.tipo!=='classe')?dd1.bits:null;
   for(const [v,u,a] of T){ if(!passaUF(u)||!passa(v,u)) continue; area+=a; comb++;
-    if(m1==='sep'&&nBitsDim(d1,v,u)>1) multi+=a;
+    if(nBitsDim(d1,v,u)>1) multi+=a;
+    // inclusivo por categoria: o pixel entra em TODAS a que pertence. Somar
+    // esta coluna excede o total de proposito -- e exatamente a dupla contagem
+    // que a comparacao existe para tornar visivel.
+    if(bits1) for(const [b,rot] of bits1)
+      if(temBit(v,u,b)) incl.set(rot,(incl.get(rot)||0)+a);
     const k1s=rot1(v,u);
     const k2s=d2==='—'?[null]:rot2(v,u);
     for(const k1 of k1s){
@@ -488,8 +495,9 @@ function calcula(){
     }
   }
   // Precisa vir antes de desenhar: liga() usa este total para a % da seleção.
-  window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1};
-  desenha(arr,area); tabela(arr,area);
+  window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1,incl,
+                rotEixo:(D.dimensoes[d1]||{}).rotulo||d1};
+  desenha(arr,area); tabela(arr,area); montaCalc();
 }
 function squarify(itens,x,y,w,h){
   // divisao simples por faixas: suficiente e estavel para leitura
@@ -868,6 +876,90 @@ function liga(){
 // misto". Antes isso so dava para fazer em planilha. Por isso TODAS as linhas
 // ficam na tela: gaveta e selecao nao convivem, o que esta escondido nao da
 // para somar.
+
+// ---- calculadora de sobreposicao ---------------------------------------
+// Escolher categorias e perguntar "quanto e uniao, quanto e intersecao, quanto
+// eu contaria a mais se somasse os filtros isolados". Antes isso exigia montar
+// a conta na mao, linha a linha, e foi assim que a dupla contagem passou
+// despercebida num material ja divulgado.
+const calcSel=new Set();
+function montaCalc(){
+  const c=document.getElementById('calc');
+  const U=window.__ult; if(!c||!U){return;}
+  const d=D.dimensoes[U.eixo];
+  if(!d||d.tipo==='classe'||!d.bits){c.innerHTML=
+    '<h3>Calculadora de sobreposição</h3><div style="color:var(--suave);'
+    +'font-size:12.5px">Este eixo tem categorias exclusivas entre si — '
+    +'não há sobreposição para calcular. Escolha outro em "Separar por".</div>';
+    return;}
+  const T=D[universo];
+  let h=`<h3>Calculadora de sobreposição <span style="font-weight:400;`
+       +`text-transform:none;letter-spacing:0;color:var(--suave)">`
+       +`— ${U.rotEixo}</span></h3>`
+       +`<div style="color:var(--suave);font-size:12.5px;margin-bottom:9px">`
+       +`Escolha duas ou mais categorias. Elas respeitam os filtros que já estão `
+       +`aplicados.</div><div style="margin-bottom:10px">`;
+  for(const [b,rot] of d.bits)
+    h+=`<span class="chip" data-cb="${b}" style="cursor:pointer`
+      +(calcSel.has(b)?';background:var(--verde);color:var(--fundo);'
+                      +'border-color:var(--verde)':'')+`">${rot}</span>`;
+  h+='</div>';
+
+  if(calcSel.size>=1){
+    const bits=[...calcSel];
+    let uniao=0, inter=0, soExatas=0, nenhuma=0;
+    const iso=new Map(bits.map(b=>[b,0]));
+    for(const [v,u,a] of T){
+      if(!passaUF(u)||!passa(v,u)) continue;
+      let k=0;
+      for(const b of bits) if(temBit(v,u,b)){k++; iso.set(b,iso.get(b)+a);}
+      if(k){uniao+=a;} else {nenhuma+=a;}
+      if(k===bits.length) inter+=a;
+      // "so estas": nenhuma OUTRA categoria do eixo acesa
+      if(k && k===nBitsDim(U.eixo,v,u)) soExatas+=a;
+    }
+    const soma=[...iso.values()].reduce((x,y)=>x+y,0);
+    const dupla=soma-uniao;
+    const pc=x=>(100*x/U.area).toFixed(2);
+    const lin=(rot,val,cor,nota)=>`<tr><td style="padding:5px 0">${rot}`
+      +(nota?`<div style="color:var(--suave);font-size:11.5px;line-height:1.4">${nota}</div>`:'')
+      +`</td><td class="n" style="padding:5px 0;${cor||''}">${fmt(val)}</td>`
+      +`<td class="n" style="padding:5px 0;${cor||''}">${pc(val)}</td></tr>`;
+    h+=`<table style="width:100%"><tr><th style="text-align:left">Medida</th>`
+      +`<th style="text-align:right">Área (ha)</th>`
+      +`<th style="text-align:right">% da seleção</th></tr>`;
+    h+=lin('<b>União</b> — em pelo menos uma delas', uniao,
+           'font-weight:600', 'é este o número que se usa. Cada pixel uma vez só.');
+    h+=lin('Soma dos filtros isolados', soma, '',
+           'o que daria somar cada categoria separadamente');
+    h+=lin('<b>Dupla contagem</b>', dupla,
+           dupla>0?'color:#d98a6a;font-weight:600':'',
+           dupla>0?'a soma acima excede a união nisto. É o erro que se comete ao somar.'
+                  :'nenhuma: as categorias escolhidas não se tocam.');
+    if(bits.length>1)
+      h+=lin('Interseção — em TODAS ao mesmo tempo', inter, '',
+             'o chão que pertence simultaneamente a todas as escolhidas');
+    h+=lin('Só nestas, em nenhuma outra do eixo', soExatas, '',
+           'exclui quem também pertence a categoria fora da sua escolha');
+    h+='</table>';
+    if(bits.length>1){
+      h+=`<div style="margin-top:9px;font-size:12px;color:var(--suave);line-height:1.5">`
+        +`Por categoria, isolada: `
+        +bits.map(b=>{const rot=d.bits.find(x=>x[0]===b)[1];
+                      return `<b>${rot}</b> ${fmt(iso.get(b))}`;}).join(' · ')
+        +`</div>`;
+    }
+    h+=`<div style="margin-top:9px"><span class="chip" data-cblimpa="1" `
+      +`style="cursor:pointer">limpar escolha</span></div>`;
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-cb]').forEach(el=>{el.onclick=()=>{
+    const b=+el.dataset.cb; calcSel.has(b)?calcSel.delete(b):calcSel.add(b);
+    montaCalc();};});
+  const lp=c.querySelector('[data-cblimpa]');
+  if(lp) lp.onclick=()=>{calcSel.clear(); montaCalc();};
+}
+
 const selLinhas=new Set();
 let verIrrelevantes=false;
 function tabela(arr,area){
