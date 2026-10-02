@@ -78,7 +78,6 @@ button[aria-pressed="true"]{background:var(--verde);color:var(--fundo);border-co
 .acoes{display:flex;gap:6px;flex-wrap:wrap}
 .cabUso{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:9px}
 .cabUso h3{margin:0}
-.chip .cor{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .chip[data-e="3"]{border-color:var(--aceso);border-style:dashed;color:var(--aceso)}
 .chip[data-e="3"] .m{color:var(--aceso)}
 .acoes button{color:var(--suave)}
@@ -105,7 +104,7 @@ button[aria-pressed="true"]{background:var(--verde);color:var(--fundo);border-co
 .sugs .x{color:var(--suave)}
 .ccards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
 .ccard{border:1px solid var(--linha);border-radius:10px;background:var(--fundo);padding:10px 12px;min-width:0}
-.ccard .t{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--suave);font-weight:600}
+.ccard .t{font-size:12.5px;line-height:1.35;color:var(--tinta);font-weight:600}
 .ccard b{display:block;font-size:19px;line-height:1.25;color:var(--verde);margin-top:4px;font-variant-numeric:tabular-nums}
 .ccard .p{font-size:12px;color:var(--tinta)}
 .ccard .nota{font-size:11.5px;color:var(--suave);line-height:1.4;margin-top:4px}
@@ -163,9 +162,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
  .plinha .seg:not(.mini){display:flex;flex-wrap:wrap;gap:6px;border:0;background:transparent;overflow:visible}
  .plinha .seg:not(.mini) button{flex:1 1 22%;padding:8px 4px;border:1px solid var(--linha);border-radius:7px}
  .isolLin{grid-template-columns:minmax(0,1fr) auto auto;gap:4px 10px}
- .ccards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .ccard{padding:9px 10px}
- .ccard b{font-size:15.5px}
+ .ccards{grid-template-columns:minmax(0,1fr);gap:8px}
  .isolLin .trilho{grid-column:1/-1;order:1}
  .acoes button{flex:1}
  .tema{width:100%}
@@ -333,21 +330,23 @@ function montaClasses(){
   for(const c of [...classesSel]) if(!usadas.has(c)) classesSel.delete(c);
   // O filtro guarda sempre códigos: o chip de grupo marca ou desmarca todos os
   // códigos dele. Assim trocar de nível nunca muda a conta, só o desenho.
-  const itens=[], cor=c=>(D.classes[c]||[0,'#999'])[1];
+  // Sem bolinha de cor: o chip é filtro, não legenda, e uma cor aqui fazia
+  // supor que o gráfico pintaria a classe dela.
+  const itens=[];
   if(nivelUso==='agr'){
     const vistos=new Set();
-    for(const [g,cg,cs] of GRUPOS_USO){
+    for(const [g,,cs] of GRUPOS_USO){
       const pres=cs.filter(c=>usadas.has(c)); pres.forEach(c=>vistos.add(c));
-      if(pres.length) itens.push({nome:g,cods:pres,cor:cg});
+      if(pres.length) itens.push({nome:g,cods:pres});
     }
     [...usadas].filter(c=>!vistos.has(c)).sort((a,b)=>a-b)
-      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c],cor:cor(c)}));
+      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c]}));
   } else [...usadas].sort((a,b)=>a-b)
-      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c],cor:cor(c)}));
+      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c]}));
   for(const it of itens){
     const s=document.createElement('span'); s.className='chip';
     if(it.cods.length>1) s.title=it.cods.map(nomeClasse).join(', ');
-    s.innerHTML=`<span class="m"></span><span class="cor" style="background:${it.cor}"></span>${it.nome}`;
+    s.innerHTML=`<span class="m"></span>${it.nome}`;
     const pinta=()=>{
       const n=it.cods.filter(c=>classesSel.has(c)).length;
       const e=!n?0:(n===it.cods.length?1:3); s.dataset.e=e;
@@ -1726,26 +1725,46 @@ function montaCalc(){
     const soma=somaB.reduce((x,y)=>x+y,0), dupla=soma-uniao;
     window.__calc={uniao,inter,soma,dupla,soEstas,iso:bits.map((b,j)=>[b,somaB[j]]),porK};
     const pc=x=>!U.area?'—':(x>0&&100*x/U.area<0.005?'<0,01%':pcBR(100*x/U.area,2));
+    // Os títulos dizem o que o número responde, com os nomes escolhidos: os
+    // rótulos curtos ("em pelo menos uma", "só nestas") não se explicavam.
+    // Entre aspas: vários nomes são frases ("Dentro de imóvel do CAR") ou têm
+    // "+" e vírgula, e sem aspas não se via onde um acaba e o outro começa.
+    const nomes=bits.map(b=>`“${nome(b)}”`), ultimo=nomes[n-1];
+    const lista=n===1?nomes[0]:nomes.slice(0,-1).join(', ')+' e '+ultimo;
+    const ouLista=n===1?nomes[0]:nomes.slice(0,-1).join(', ')+' ou '+ultimo;
+    const EXT=['','uma','duas','três','quatro','cinco','seis','sete','oito','nove','dez'];
+    const ext=k=>EXT[k]||String(k);
+    const outras=irmaos.map(nome), gs=[...grupos];
+    const gtxt=gs.length===1?gs[0]:gs.slice(0,-1).join(', ')+' e '+gs[gs.length-1];
+    const doGrupo=gs.length>1?'dos mesmos grupos':'do mesmo grupo';
     const card=(t,v,nota,cls)=>`<div class="ccard ${cls||''}"><div class="t">${t}</div><b>${fmt(v)} ha</b>`+
-      `<div class="p">${pc(v)} da seleção</div>${nota?`<div class="nota">${nota}</div>`:''}</div>`;
+      `<div class="p">${pc(v)} da área selecionada</div>${nota?`<div class="nota">${nota}</div>`:''}</div>`;
     h+='<div class="ccards">';
-    h+=card(n>1?'Em pelo menos uma':'Área da categoria',uniao,
-            n>1?'a união — é o número a usar: cada pixel conta uma vez':'');
+    h+=card(n>1?`Área ocupada por ${lista}, juntas`:`Área de ${nomes[0]}`, uniao,
+      n>1?'Cada hectare conta uma vez, mesmo que esteja em mais de uma delas. É este o número para citar.':'');
     if(n>1){
-      h+=card('Em todas ao mesmo tempo',inter,'a interseção: o chão que é das '+(n===2?'duas':`${n}`)+' ao mesmo tempo');
-      h+=card('A mais, se somar separadas',dupla,
-              dupla>0?`somar as ${n} isoladas daria ${fmt(soma)} ha — a dupla contagem`:'nenhuma: elas não se tocam',
-              dupla>0?'alerta':'');
+      h+=card(n===2?`Área que é ${nomes[0]} e ${nomes[1]} ao mesmo tempo`:`Área que está nas ${ext(n)} ao mesmo tempo`,
+        inter, 'É onde elas se cruzam: o mesmo pedaço de chão pertence a todas.');
+      h+=card(n===2?'Área que seria contada duas vezes':'Área que seria contada mais de uma vez', dupla,
+        dupla>0?`Se você somar a área de cada uma separadamente, o total dá ${fmt(soma)} ha — passa da área real `+
+                `neste valor, porque o chão em comum entra em mais de uma soma.`
+               :'Nenhuma: as categorias escolhidas não se encostam.',
+        dupla>0?'alerta':'');
     }
-    h+=card('Só nestas',soEstas,'sem nenhuma outra categoria de: '+[...grupos].map(curto).join(', '));
+    h+=card(`Área só de ${ouLista}, sem outra categoria ${doGrupo}`, soEstas,
+      outras.length?`Fica fora das outras ${outras.length} categorias de ${gtxt} `+
+        `(${outras.slice(0,3).join(', ')}${outras.length>3?'…':''}).`
+       :`${gtxt} não tem outras categorias, então é igual à área da categoria.`);
     h+='</div>';
     if(n>1&&uniao>0){
-      // Como a união se divide: com duas categorias, "só A / as duas / só B";
-      // com mais, pelo número de escolhidas em que cada pixel está.
+      // Como a área ocupada se divide: com duas categorias, "só A / as duas /
+      // só B"; com mais, pelo número de escolhidas em que cada pixel está.
       const segs = n===2
-        ? [[`só ${nome(bits[0])}`,somaB[0]-inter,CORES_K[0]],['nas duas',inter,CORES_K[1]],[`só ${nome(bits[1])}`,somaB[1]-inter,CORES_K[5]]]
-        : porK.slice(1).map((v,k)=>[k+1===n?`em todas (${n})`:k===0?'em 1 só':`em ${k+1}`,v,CORES_K[Math.min(k,CORES_K.length-1)]]);
-      h+=`<div class="decomp"><div class="dtit">Como a união se divide</div><div class="dbar">`+
+        ? [[`só ${nomes[0]}`,somaB[0]-inter,CORES_K[0]],[`${nomes[0]} e ${nomes[1]} ao mesmo tempo`,inter,CORES_K[1]],
+           [`só ${nomes[1]}`,somaB[1]-inter,CORES_K[5]]]
+        : porK.slice(1).map((v,k)=>[k+1===n?`em todas as ${ext(n)}`:k===0?'em só uma delas':`em ${ext(k+1)} delas`,
+                                    v,CORES_K[Math.min(k,CORES_K.length-1)]]);
+      h+=`<div class="decomp"><div class="dtit">Como a área ocupada se divide</div><div class="dbar">`+
          segs.filter(s=>s[1]>0).map(([t,v,cor])=>{ const p=100*v/uniao;
            return `<span style="width:${p}%;background:${cor};color:${corTexto(cor)}" title="${escAttr(t)}: ${fmt(v)} ha">`+
                   `${p>=9?pcBR(p,0):''}</span>`; }).join('')+'</div>'+
@@ -1753,7 +1772,9 @@ function montaCalc(){
     }
     if(n>1){
       const maxI=Math.max(...somaB)||1;
-      h+='<div class="dtit" style="margin-top:14px">Cada uma, isolada</div><div class="isol">'+bits.map((b,j)=>
+      h+=`<div class="dtit" style="margin-top:14px">Área de cada uma, sozinha</div>`+
+         `<div class="calcSub" style="margin:-2px 0 8px">Cada linha conta a categoria inteira, inclusive o que ela `+
+         `divide com as outras — por isso somar as linhas dá ${fmt(soma)} ha.</div><div class="isol">`+bits.map((b,j)=>
         `<div class="isolLin"><span class="nm"><small>${curto(grupo(b))}</small> ${nome(b)}</span>`+
         `<span class="trilho"><span class="bar" style="width:${100*somaB[j]/maxI}%"></span></span>`+
         `<span class="n">${fmt(somaB[j])} ha</span><span class="n">${pc(somaB[j])}</span></div>`).join('')+'</div>';
@@ -1761,11 +1782,13 @@ function montaCalc(){
   }
   c.innerHTML=h;
   document.getElementById('iCalc').appendChild(info(
-    '<b>Em pelo menos uma</b> (união): a área que está em alguma das escolhidas, cada pixel uma vez só.<br><br>'+
-    '<b>Em todas ao mesmo tempo</b> (interseção): a área que pertence a todas as escolhidas juntas.<br><br>'+
-    '<b>A mais, se somar separadas</b>: quanto a soma das áreas isoladas passa da união — é a dupla '+
-    'contagem que aparece quando se somam filtros feitos um de cada vez.<br><br>'+
-    '<b>Só nestas</b>: está nas escolhidas e em nenhuma outra categoria dos mesmos grupos.',
+    '<b>Área ocupada, juntas</b>: tudo o que está em pelo menos uma das escolhidas, cada hectare uma vez '+
+    'só (a união). É o número para citar.<br><br>'+
+    '<b>Ao mesmo tempo</b>: o chão que pertence a todas as escolhidas juntas (a interseção).<br><br>'+
+    '<b>Contada duas vezes</b>: quanto a soma das áreas de cada uma passa da área real — é o erro de '+
+    'somar filtros feitos um de cada vez.<br><br>'+
+    '<b>Sem outra categoria do grupo</b>: está nas escolhidas e fora de todas as outras categorias dos '+
+    'mesmos grupos.',
     'Como ler a calculadora'));
   const sel=document.getElementById('calcAdd');
   sel.onchange=()=>{ if(sel.value){ calcSel.add(+sel.value); montaCalc(); } };
