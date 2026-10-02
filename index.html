@@ -110,6 +110,7 @@ APP, Reserva Legal e parcela SNCI pública.</p>
     <button id="vAnel" aria-pressed="false">Pizza + anel</button>
     <button id="vSank" aria-pressed="false">Sankey</button>
     <button id="baixar">Baixar CSV</button>
+    <button id="link" title="copia um endereço que reabre exatamente esta tela">Copiar link desta tela</button>
     <button id="baixarPNG" title="salva o gráfico como está, em PNG">Baixar PNG</button>
   </div>
   <div id="aviso" style="display:none;border:1px solid var(--apagado);border-left-width:4px;
@@ -877,6 +878,42 @@ function liga(){
 // ficam na tela: gaveta e selecao nao convivem, o que esta escondido nao da
 // para somar.
 
+
+// ---- estado da tela na URL ----------------------------------------------
+// Sem isto, "reproduza o que eu vi" era uma lista de cliques, e conferir o
+// numero de outra pessoa dependia de refazer a sequencia certa. Com o link, a
+// tela inteira volta igual -- e um print passa a ser verificavel.
+function estadoParaURL(){
+  const p=new URLSearchParams();
+  p.set('u',universo);
+  if(ufSel) p.set('uf',ufSel);
+  const mais=[], menos=[];
+  for(const b in estado){ if(estado[b]===1) mais.push(b); else if(estado[b]===2) menos.push(b); }
+  if(mais.length) p.set('m',mais.join(','));
+  if(menos.length) p.set('n',menos.join(','));
+  if(classesSel.size) p.set('c',[...classesSel].join(','));
+  p.set('e',eixos.map(x=>x.d+':'+x.m).join(','));
+  if(vis!=='tree') p.set('g',vis);
+  if(calcSel.size) p.set('k',[...calcSel].join(','));
+  return location.origin+location.pathname+'?'+p.toString();
+}
+function aplicaURL(){
+  const p=new URLSearchParams(location.search);
+  if(![...p.keys()].length) return false;
+  if(p.get('u')==='recorte'||p.get('u')==='mestre') universo=p.get('u');
+  if(p.get('uf')) ufSel=+p.get('uf');
+  for(const [chave,val] of [['m',1],['n',2]])
+    for(const b of (p.get(chave)||'').split(',').filter(Boolean)) estado[b]=val;
+  for(const c of (p.get('c')||'').split(',').filter(Boolean)) classesSel.add(+c);
+  for(const b of (p.get('k')||'').split(',').filter(Boolean)) calcSel.add(+b);
+  const e=(p.get('e')||'').split(',').filter(Boolean)
+    .map(x=>({d:x.split(':')[0], m:x.split(':')[1]||'sep'}))
+    .filter(x=>D.dimensoes[x.d]);
+  if(e.length) eixos=e;
+  if(p.get('g')) vis=p.get('g');
+  return true;
+}
+
 // ---- calculadora de sobreposicao ---------------------------------------
 // Escolher categorias de QUALQUER grupo -- nao so do eixo de "Separar por" --
 // e perguntar quanto e uniao, quanto e intersecao e quanto se contaria a mais
@@ -1104,6 +1141,15 @@ document.getElementById('limpar').onclick=()=>{
   for(const k in estado) delete estado[k]; classesSel.clear();
   document.querySelectorAll('.chip').forEach(c=>{c.dataset.e=0;c.querySelector('.m').textContent='·';});
   calcula();};
+document.getElementById('link').onclick=()=>{
+  const u=estadoParaURL();
+  const b=document.getElementById('link');
+  const volta=b.textContent;
+  navigator.clipboard.writeText(u).then(
+    ()=>{b.textContent='link copiado'; setTimeout(()=>b.textContent=volta,1800);},
+    ()=>{window.prompt('Copie o endereço desta tela:', u);});
+  history.replaceState(null,'',u);
+};
 document.getElementById('baixar').onclick=()=>{
   // 'bruto' e o array SEM a cauda agrupada: a planilha tem de trazer todas as
   // combinacoes, uma por linha, porque e nela que se faz a soma.
@@ -1208,7 +1254,18 @@ document.getElementById('baixarPNG').onclick=baixarPNG;
     'próprio botão de leitura ao lado. Da terceira em diante só o Sankey desenha.',
     'Separar por');
 })();
+const veioDaURL = aplicaURL();
 montaFiltros(); montaEixos(); montaUF(); sincLeitura(); sincUF();
+if(veioDaURL){
+  // os chips sao desenhados a partir de 'estado', mas o visual de cada um vem
+  // do dataset -- sem isto eles nasceriam sem o + e sem o -
+  document.querySelectorAll('#filtros .chip').forEach(c=>{
+    const e=estado[c.dataset.bit]||0; c.dataset.e=e;
+    c.querySelector('.m').textContent = e===0?'·':(e===1?'+':'−');});
+  document.getElementById('uMestre').setAttribute('aria-pressed', universo==='mestre');
+  document.getElementById('uRecorte').setAttribute('aria-pressed', universo==='recorte');
+  calcula();
+}
 
 // Autoconferencia: abra o arquivo com ?validar no fim do endereco.
 // Refaz em JavaScript as combinacoes calculadas em pandas e compara.
