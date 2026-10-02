@@ -878,45 +878,57 @@ function liga(){
 // para somar.
 
 // ---- calculadora de sobreposicao ---------------------------------------
-// Escolher categorias e perguntar "quanto e uniao, quanto e intersecao, quanto
-// eu contaria a mais se somasse os filtros isolados". Antes isso exigia montar
-// a conta na mao, linha a linha, e foi assim que a dupla contagem passou
-// despercebida num material ja divulgado.
+// Escolher categorias de QUALQUER grupo -- nao so do eixo de "Separar por" --
+// e perguntar quanto e uniao, quanto e intersecao e quanto se contaria a mais
+// somando os filtros isolados. A primeira versao so enxergava um eixo, o que
+// deixava de fora justamente a pergunta mais comum: cruzar camadas diferentes,
+// como CAR com Terra Indigena.
 const calcSel=new Set();
+function bitsPorRotulo(){
+  const m=new Map();
+  for(const [g,bits] of D.grupos) for(const [b,rot] of bits) m.set(b,{rot,grupo:g});
+  return m;
+}
 function montaCalc(){
-  const c=document.getElementById('calc');
-  const U=window.__ult; if(!c||!U){return;}
-  const d=D.dimensoes[U.eixo];
-  if(!d||d.tipo==='classe'||!d.bits){c.innerHTML=
-    '<h3>Calculadora de sobreposição</h3><div style="color:var(--suave);'
-    +'font-size:12.5px">Este eixo tem categorias exclusivas entre si — '
-    +'não há sobreposição para calcular. Escolha outro em "Separar por".</div>';
-    return;}
-  const T=D[universo];
-  let h=`<h3>Calculadora de sobreposição <span style="font-weight:400;`
-       +`text-transform:none;letter-spacing:0;color:var(--suave)">`
-       +`— ${U.rotEixo}</span></h3>`
+  const c=document.getElementById('calc'); const U=window.__ult;
+  if(!c||!U) return;
+  const cat=bitsPorRotulo();
+  let h=`<h3>Calculadora de sobreposição</h3>`
        +`<div style="color:var(--suave);font-size:12.5px;margin-bottom:9px">`
-       +`Escolha duas ou mais categorias. Elas respeitam os filtros que já estão `
-       +`aplicados.</div><div style="margin-bottom:10px">`;
-  for(const [b,rot] of d.bits)
-    h+=`<span class="chip" data-cb="${b}" style="cursor:pointer`
-      +(calcSel.has(b)?';background:var(--verde);color:var(--fundo);'
-                      +'border-color:var(--verde)':'')+`">${rot}</span>`;
-  h+='</div>';
+       +`Escolha categorias de <b>qualquer</b> grupo — dá para cruzar camadas `
+       +`diferentes. Elas respeitam os filtros já aplicados.</div>`;
+  for(const [g,bits] of D.grupos){
+    h+=`<div style="font-size:11.5px;color:var(--suave);margin:7px 0 3px;`
+      +`text-transform:uppercase;letter-spacing:.04em">${g}</div><div>`;
+    for(const [b,rot] of bits)
+      h+=`<span class="chip" data-cb="${b}" style="cursor:pointer`
+        +(calcSel.has(b)?';background:var(--verde);color:var(--fundo);'
+                        +'border-color:var(--verde)':'')+`">${rot}</span>`;
+    h+='</div>';
+  }
 
   if(calcSel.size>=1){
     const bits=[...calcSel];
-    let uniao=0, inter=0, soExatas=0, nenhuma=0;
+    // "so estas" e relativo aos GRUPOS tocados pela escolha: estar nestas e em
+    // nenhuma outra categoria dos mesmos grupos.
+    const grupos=new Set(bits.map(b=>cat.get(b)?cat.get(b).grupo:null));
+    const irmaos=[];
+    for(const [g,bs] of D.grupos) if(grupos.has(g))
+      for(const [b] of bs) if(!calcSel.has(b)) irmaos.push(b);
+
+    const T=D[universo];
+    let uniao=0, inter=0, soEstas=0;
     const iso=new Map(bits.map(b=>[b,0]));
     for(const [v,u,a] of T){
       if(!passaUF(u)||!passa(v,u)) continue;
       let k=0;
       for(const b of bits) if(temBit(v,u,b)){k++; iso.set(b,iso.get(b)+a);}
-      if(k){uniao+=a;} else {nenhuma+=a;}
+      if(!k) continue;
+      uniao+=a;
       if(k===bits.length) inter+=a;
-      // "so estas": nenhuma OUTRA categoria do eixo acesa
-      if(k && k===nBitsDim(U.eixo,v,u)) soExatas+=a;
+      let outro=false;
+      for(const b of irmaos) if(temBit(v,u,b)){outro=true;break;}
+      if(!outro) soEstas+=a;
     }
     const soma=[...iso.values()].reduce((x,y)=>x+y,0);
     const dupla=soma-uniao;
@@ -925,30 +937,29 @@ function montaCalc(){
       +(nota?`<div style="color:var(--suave);font-size:11.5px;line-height:1.4">${nota}</div>`:'')
       +`</td><td class="n" style="padding:5px 0;${cor||''}">${fmt(val)}</td>`
       +`<td class="n" style="padding:5px 0;${cor||''}">${pc(val)}</td></tr>`;
-    h+=`<table style="width:100%"><tr><th style="text-align:left">Medida</th>`
+    h+=`<table style="width:100%;margin-top:12px"><tr><th style="text-align:left">Medida</th>`
       +`<th style="text-align:right">Área (ha)</th>`
       +`<th style="text-align:right">% da seleção</th></tr>`;
-    h+=lin('<b>União</b> — em pelo menos uma delas', uniao,
-           'font-weight:600', 'é este o número que se usa. Cada pixel uma vez só.');
-    h+=lin('Soma dos filtros isolados', soma, '',
-           'o que daria somar cada categoria separadamente');
-    h+=lin('<b>Dupla contagem</b>', dupla,
-           dupla>0?'color:#d98a6a;font-weight:600':'',
-           dupla>0?'a soma acima excede a união nisto. É o erro que se comete ao somar.'
-                  :'nenhuma: as categorias escolhidas não se tocam.');
-    if(bits.length>1)
-      h+=lin('Interseção — em TODAS ao mesmo tempo', inter, '',
-             'o chão que pertence simultaneamente a todas as escolhidas');
-    h+=lin('Só nestas, em nenhuma outra do eixo', soExatas, '',
-           'exclui quem também pertence a categoria fora da sua escolha');
-    h+='</table>';
+    h+=lin('<b>União</b> — em pelo menos uma delas', uniao, 'font-weight:600',
+           'é este o número que se usa. Cada pixel uma vez só.');
     if(bits.length>1){
-      h+=`<div style="margin-top:9px;font-size:12px;color:var(--suave);line-height:1.5">`
-        +`Por categoria, isolada: `
-        +bits.map(b=>{const rot=d.bits.find(x=>x[0]===b)[1];
-                      return `<b>${rot}</b> ${fmt(iso.get(b))}`;}).join(' · ')
-        +`</div>`;
+      h+=lin('Soma dos filtros isolados', soma, '',
+             'o que daria somar cada categoria separadamente');
+      h+=lin('<b>Dupla contagem</b>', dupla,
+             dupla>0?'color:#d98a6a;font-weight:600':'',
+             dupla>0?'a soma acima excede a união nisto. É o erro que se comete ao somar.'
+                    :'nenhuma: as categorias escolhidas não se tocam.');
+      h+=lin('<b>Interseção</b> — em TODAS ao mesmo tempo', inter, 'font-weight:600',
+             'o chão que pertence simultaneamente a todas as escolhidas');
     }
+    h+=lin('Só nestas', soEstas, '',
+           'e em nenhuma outra categoria dos grupos envolvidos: '
+           +[...grupos].join(', '));
+    h+='</table>';
+    if(bits.length>1)
+      h+=`<div style="margin-top:9px;font-size:12px;color:var(--suave);line-height:1.5">`
+        +`Isolada: `+bits.map(b=>`<b>${cat.get(b)?cat.get(b).rot:b}</b> ${fmt(iso.get(b))}`)
+                         .join(' · ')+`</div>`;
     h+=`<div style="margin-top:9px"><span class="chip" data-cblimpa="1" `
       +`style="cursor:pointer">limpar escolha</span></div>`;
   }
