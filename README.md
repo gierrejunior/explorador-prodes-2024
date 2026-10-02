@@ -112,6 +112,30 @@ Há botões **ⓘ** espalhados pelos controles explicando cada um. O botão
 No Sankey toda comparação é separada, por imposição do próprio gráfico: ele
 precisa que o que sai de uma coluna seja exatamente o que entra na seguinte.
 
+O **uso do solo** abre agrupado nos oito grupos definidos pelo time; o botão
+**Detalhado**, no filtro e na comparação de uso do solo, volta às classes do
+MapBiomas. Trocar de nível não muda a conta: os hectares de um grupo são a soma
+exata das suas classes.
+
+| grupo | classes do MapBiomas (códigos) |
+|---|---|
+| Floresta | Formação Florestal, Floresta Alagável, Formação Savânica, Savana Alagada, Mangue, Restinga Arbórea (3, 6, 4, 7, 5, 49) |
+| Vegetação herbácea | Formação Campestre, Formação Herbáceo Arbustiva, Campo Alagado e Área Pantanosa, Marisma, Restinga Herbácea ou Arbustiva, Apicum, Afloramento Rochoso (12, 77, 11, 84, 50, 32, 29) |
+| Pastagem | Pastagem (15) |
+| Agricultura anual | Lavoura Temporária (19) e as culturas temporárias da coleção 11 (39, 20, 40, 62, 41) |
+| Agricultura perene | Lavoura Perene (36) e as culturas perenes da coleção 11 (46, 47, 35, 48) |
+| Silvicultura | Silvicultura (9) |
+| Mosaico de usos agro | Mosaico de Usos (21) |
+| Outros | Praia, Duna e Areal, Área Urbanizada, Mineração, Usina Fotovoltaica, Parque Eólico, Outras Áreas não Vegetadas, Rio, Lago e Oceano, Aquicultura (23, 24, 30, 75, 91, 25, 33, 31) |
+
+A grade de 10 m não separa as culturas: a agricultura vem só como Lavoura
+Temporária e Lavoura Perene, por isso os códigos 19 e 36 entram nos grupos.
+**Fora do MapBiomas** (código 0, sem classificação) fica à parte, com o
+próprio nome. Links copiados antes desta opção abrem no detalhado, como eram.
+
+O seletor **Tema**, no alto da página, escolhe claro, escuro ou automático — o
+automático segue o modo claro ou escuro do computador ou do celular.
+
 ## Método
 
 Grade de **10 m**, atribuição pelo **centro do pixel**. Área
