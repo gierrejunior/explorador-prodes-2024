@@ -85,6 +85,45 @@ button[aria-pressed="true"]{background:var(--verde);color:var(--fundo);border-co
 .acoes button:hover{color:var(--tinta)}
 .aviso{display:none;border:1px solid var(--apagado);border-left-width:4px;border-radius:8px;padding:10px 13px;
  margin-bottom:12px;font-size:12.5px;background:var(--painel);color:var(--tinta)}
+.gnota{font-size:12.5px;line-height:1.5;color:var(--suave);margin:0 0 8px}
+.gnota:empty{display:none}
+.gnota b{color:var(--tinta);font-weight:600}
+.opBarra{margin-top:6px}
+.calcSub{color:var(--suave);font-size:12.5px;margin:0 0 10px}
+.calcEscolha{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.calcEscolha select{max-width:100%;font-weight:600;color:var(--verde)}
+.fichas{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ficha{display:inline-flex;align-items:center;gap:6px;padding:3px 3px 3px 10px;border:1px solid var(--aceso);
+ border-radius:999px;background:color-mix(in srgb,var(--aceso) 8%,var(--fundo));font-size:12px;color:var(--tinta)}
+.ficha small{color:var(--suave);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.ficha button{border:0;background:transparent;padding:2px 7px;font-size:14px;line-height:1;color:var(--suave);border-radius:999px}
+.ficha button:hover{color:var(--apagado)}
+.limpaCalc{border:0;background:transparent;color:var(--suave);text-decoration:underline;padding:4px}
+.calcVazio{color:var(--suave);font-size:12.5px;border:1px dashed var(--linha);border-radius:10px;padding:12px 14px;background:var(--fundo)}
+.sugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.sugs button{font-size:12px;color:var(--tinta)}
+.sugs .x{color:var(--suave)}
+.ccards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+.ccard{border:1px solid var(--linha);border-radius:10px;background:var(--fundo);padding:10px 12px;min-width:0}
+.ccard .t{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--suave);font-weight:600}
+.ccard b{display:block;font-size:19px;line-height:1.25;color:var(--verde);margin-top:4px;font-variant-numeric:tabular-nums}
+.ccard .p{font-size:12px;color:var(--tinta)}
+.ccard .nota{font-size:11.5px;color:var(--suave);line-height:1.4;margin-top:4px}
+.ccard.alerta{border-color:color-mix(in srgb,var(--apagado) 55%,var(--linha))}
+.ccard.alerta b{color:var(--apagado)}
+.dtit{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--suave);font-weight:600;margin-bottom:6px}
+.decomp{margin-top:14px}
+.dbar{display:flex;height:24px;border-radius:6px;overflow:hidden;background:var(--linha)}
+.dbar span{height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+ min-width:0;overflow:hidden;white-space:nowrap}
+.dleg{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:7px;font-size:12px;color:var(--tinta)}
+.dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.isol{display:flex;flex-direction:column;gap:7px;font-size:12.5px}
+.isolLin{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(50px,1fr) 130px 64px;gap:4px 12px;align-items:center}
+.isol .nm small{color:var(--suave);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.isol .trilho{height:8px;border-radius:4px;background:var(--linha);overflow:hidden}
+.isol .bar{display:block;height:100%;background:var(--verde)}
+.isol .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .gdica{display:none;font-size:12px;color:var(--suave);margin:0 0 6px}
 .grafico{border:1px solid var(--linha);border-radius:10px;background:var(--fundo);overflow-x:auto;overflow-y:hidden;
  box-shadow:var(--sombra)}
@@ -121,8 +160,13 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
  .eixo .modo,.eixo .seg{margin-left:26px}
  .eixo .tira{margin-left:auto}
  .plinha{flex-direction:column;align-items:stretch}
- .plinha .seg{display:flex}
- .plinha .seg button{flex:1;padding:8px 4px}
+ .plinha .seg:not(.mini){display:flex;flex-wrap:wrap;gap:6px;border:0;background:transparent;overflow:visible}
+ .plinha .seg:not(.mini) button{flex:1 1 22%;padding:8px 4px;border:1px solid var(--linha);border-radius:7px}
+ .isolLin{grid-template-columns:minmax(0,1fr) auto auto;gap:4px 10px}
+ .ccards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .ccard{padding:9px 10px}
+ .ccard b{font-size:15.5px}
+ .isolLin .trilho{grid-column:1/-1;order:1}
  .acoes button{flex:1}
  .tema{width:100%}
  th,td{padding:6px 7px}
@@ -191,9 +235,16 @@ vez, ao lado dos seis bits de esfera e grupo.</p></details>
     <div class="gtit">Gráfico</div>
     <div class="seg" role="group" aria-label="Tipo de gráfico">
       <button id="vTree" aria-pressed="true">Treemap</button>
+      <button id="vBarra" aria-pressed="false" title="uma barra por categoria, dividida pela comparação 2">Barras</button>
       <button id="vSun" aria-pressed="false">Sunburst</button>
       <button id="vAnel" aria-pressed="false">Pizza + anel</button>
       <button id="vSank" aria-pressed="false">Sankey</button>
+      <button id="vUpset" aria-pressed="false" title="quais categorias se sobrepõem e quantos hectares cada combinação tem">Sobreposições</button>
+      <button id="vTaxa" aria-pressed="false" title="quanto de cada categoria foi desmatado em 2024">% desmatado</button>
+    </div>
+    <div id="opBarra" class="seg mini opBarra" role="group" aria-label="escala das barras" hidden>
+      <button type="button" data-bm="ha" aria-pressed="true">Hectares</button>
+      <button type="button" data-bm="pct" aria-pressed="false">100%</button>
     </div>
     </div>
     <div class="pgrupo">
@@ -207,6 +258,7 @@ vez, ao lado dos seis bits de esfera e grupo.</p></details>
     </div>
   </section>
   <div id="aviso" class="aviso"></div>
+  <div id="gNota" class="gnota"></div>
   <div id="gDica" class="gdica">↔ deslize o gráfico para ver todas as colunas</div>
   <div id="gWrap" class="grafico"><svg id="g" viewBox="0 0 900 560" role="img" aria-label="gráfico da combinação selecionada"></svg></div>
   <div class="tabwrap"><table id="tab"></table></div>
@@ -629,6 +681,9 @@ function calcula(){
   const rot2=d2==='—'?null:leitor(d2).lista[m2];
   window.__eixos=eixos;
   let multi=0; const incl=new Map();
+  // Combinações exatas da comparação 1, para o gráfico de sobreposições: sai
+  // daqui para trocar de gráfico continuar sem refazer a conta.
+  const combos=(D.dimensoes[d1].tipo!=='classe')?new Map():null;
   const dd1=D.dimensoes[d1], bits1=(dd1&&dd1.tipo!=='classe')?dd1.bits:null;
   // Sankey de três colunas ou mais: entra na mesma passada, que antes era a
   // segunda volta completa pelos dados. Cada rótulo vira um número dentro da
@@ -648,6 +703,8 @@ function calcula(){
     nac+=a;
     if(!naUF) continue;
     area+=a; comb++;
+    if(combos){ const lab=L1.um.sep(v,u); let cb=combos.get(lab);
+      if(!cb) combos.set(lab,cb={nome:lab,membros:acesos1(v,u),valor:0}); cb.valor+=a; }
     if(n1(v,u)>1) multi+=a;
     // inclusivo por categoria: o pixel entra em TODAS a que pertence. Somar
     // esta coluna excede o total de proposito -- e exatamente a dupla contagem
@@ -727,7 +784,7 @@ function calcula(){
     }
   }
   // Precisa vir antes de desenhar: a dica do gráfico usa este total para a % da seleção.
-  window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1,incl,
+  window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1,incl,combos:combos?[...combos.values()]:null,
                 rotEixo:(D.dimensoes[d1]||{}).rotulo||d1};
   desenha(arr,area); tabela(arr,area); montaCalc();
 }
@@ -751,7 +808,7 @@ function avisa(){
       '"Pequena + Grande" e a soma passa do total — de propósito, é a resposta '+
       'para “quanto há de grande ao todo”. Para um total que fecha, volte a '+
       '<b>separado</b> naquela comparação; aí as sobreposições viram classe própria.';
-  } else if(eixos.length>2 && vis!=='sank'){
+  } else if(eixos.length>2 && ['tree','sun','anel','barra'].includes(vis)){
     av.style.display='block';
     av.innerHTML='Você tem <b>'+eixos.length+' comparações</b>, e só o <b>Sankey</b> desenha mais de duas. Nos outros '+
       'gráficos as folhas são as próprias combinações: com três eixos elas passam de '+
@@ -908,6 +965,9 @@ function desenha(arr,area){
   else o = vis==='tree'?treemap(arr)
          :vis==='sun'?sunburst(arr)
          :vis==='anel'?pizzaAnel(arr)
+         :vis==='barra'?barras(arr)
+         :vis==='upset'?upset()
+         :vis==='taxa'?taxa()
          :sankey(arr);
   svg.setAttribute('viewBox',`0 0 ${GW} ${GH}`);
   // Sankey de muitas colunas não cabe numa tela estreita: o cartão rola na
@@ -915,6 +975,7 @@ function desenha(arr,area){
   svg.style.width = GW>w ? GW+'px' : '';
   svg.innerHTML=o;
   document.getElementById('gDica').style.display = GW>w ? 'block' : 'none';
+  notaGrafico();
 }
 let redesenhoPendente=false;
 new ResizeObserver(()=>{
@@ -1189,7 +1250,7 @@ function sankeyN(S){
   // Título de cada coluna em até duas linhas, na largura que a coluna tem.
   const titulos=S.rot.map((r,i)=>{
     const w=i===0?labL+NL:(i===N-1?labR+NL:passo-12);
-    return quebraW(r.toUpperCase(),8.5,w,2,600);
+    return quebraW(r.toUpperCase(),8.5,w*0.88,2,600);
   });
   const SUP=8+Math.max(...titulos.map(t=>t.length))*11+6;
   const ALT=GH-SUP-INF, maxN=Math.max(...C.map(c=>c.length));
@@ -1233,6 +1294,263 @@ function sankeyN(S){
   return o;
 }
 
+// ---- barras empilhadas, sobreposições (UpSet) e % desmatado ---------------
+const fmtCurto=v=>v>=1e6?nBR(v/1e6,v>=1e8?0:1)+' mi':v>=1e3?nBR(v/1e3,v>=1e5?0:1)+' mil':fmt(v);
+const escAttr=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+function mensagemGrafico(txt){
+  GH=Math.max(220,Math.min(GH,300));
+  const ls=quebraW(txt,13,Math.min(GW-40,540),6);
+  const y0=GH/2-(ls.length*19)/2+13;
+  return ls.map((t,k)=>`<text x="${f1(GW/2)}" y="${f1(y0+k*19)}" text-anchor="middle" font-size="13" fill="var(--suave)">${t}</text>`).join('');
+}
+function corPorNome(dimn){
+  // Uso do solo pinta com as cores do MapBiomas, para casar com o mapa que o
+  // time conhece; as outras dimensões usam a paleta pela ordem de tamanho.
+  if(dimn!=='mapbiomas') return ()=>null;
+  const m=new Map();
+  if(nivelUso==='agr') GRUPOS_USO.forEach(([g,c])=>m.set(g,c));
+  for(const k in D.classes){ const n=D.classes[k][0]; if(!m.has(n)) m.set(n,D.classes[k][1]); }
+  return n=>m.get(n)||null;
+}
+
+let barraModo='ha';
+function barras(arr){
+  const tot=window.__ult.area||1, pct=barraModo==='pct', estreito=GW<640;
+  const d2=eixos.length>1?dim(1):null;
+  // Categorias da comparação 2 com cor fixa, da maior para a menor; além das
+  // primeiras, viram "Outras categorias" para a legenda caber.
+  const somaF=new Map();
+  for(const it of arr) for(const f of (it.filhos||[])) somaF.set(f.nome,(somaF.get(f.nome)||0)+f.valor);
+  const ordem=[...somaF.entries()].sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const MAXC=estreito?7:10, cores=new Map(), corDim=d2?corPorNome(d2):()=>null;
+  ordem.slice(0,MAXC).forEach((n,i)=>cores.set(n,corDim(n)||PAL[i%PAL.length]));
+  const OUTRAS='Outras categorias', COR_OUT='#9AA5A8';
+  const posLeg=new Map(ordem.map((n,i)=>[n,i]));
+  let o='', y=6;
+  if(ordem.length){
+    const leg=ordem.slice(0,MAXC).map(n=>[n,cores.get(n)]);
+    if(ordem.length>MAXC) leg.push([OUTRAS,COR_OUT]);
+    let x=4;
+    for(const [n,c] of leg){
+      const t=cabe(n,11,Math.min(220,GW-30)), w=16+largura(t,11)+14;
+      if(x>4&&x+w>GW-4){ x=4; y+=18; }
+      o+=`<rect x="${f1(x)}" y="${f1(y+1)}" width="10" height="10" rx="2" fill="${c}"/>`+
+         `<text x="${f1(x+15)}" y="${f1(y+10)}" font-size="11" fill="var(--tinta)">${t}</text>`;
+      x+=w;
+    }
+    y+=26;
+  }
+  const labW=estreito?0:Math.max(110,Math.min(240,GW*0.24));
+  const valW=estreito?0:(pct?110:175);
+  const x0=estreito?4:labW+10, barW=Math.max(40,GW-x0-valW-(estreito?4:8));
+  const rowH=estreito?44:30, bh=estreito?16:18;
+  const maxV=Math.max(...arr.map(it=>it.valor))||1;
+  arr.forEach((it,i)=>{
+    const len=pct?barW:barW*it.valor/maxV;
+    const yb=estreito?y+18:y+(rowH-bh)/2;
+    const val=`${fmt(it.valor)} ha · ${pcBR(100*it.valor/tot,1)}`;
+    if(estreito){
+      const wv=largura(val,10.5);
+      o+=`<g class="it" data-n="${it.nome}" data-v="${it.valor}"><text x="4" y="${f1(y+12)}" font-size="11.5" font-weight="600" fill="var(--tinta)">${cabe(it.nome,11.5,GW-wv-18,600)}</text>`+
+         `<text x="${GW-4}" y="${f1(y+12)}" text-anchor="end" font-size="10.5" fill="var(--suave)">${val}</text></g>`;
+    } else {
+      const ls=quebraW(it.nome,11.5,labW-4,2,600);
+      const y0=yb+bh/2-(ls.length*13)/2+9.5;
+      o+=`<g class="it" data-n="${it.nome}" data-v="${it.valor}">`+ls.map((t,k)=>
+        `<text x="${f1(labW)}" y="${f1(y0+k*13)}" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--tinta)">${t}</text>`).join('')+'</g>';
+      o+=`<text x="${f1(x0+len+6)}" y="${f1(yb+bh/2+4)}" font-size="10.5" fill="var(--suave)">${pct?fmt(it.valor)+' ha':val}</text>`;
+    }
+    o+=`<clipPath id="cb${i}"><rect x="${f1(x0)}" y="${f1(yb)}" width="${f1(Math.max(len,1))}" height="${bh}" rx="3"/></clipPath><g clip-path="url(#cb${i})">`;
+    const fs=(it.filhos&&it.filhos.length)?it.filhos:null;
+    if(!fs){
+      o+=`<rect class="it" data-n="${it.nome}" data-v="${it.valor}" x="${f1(x0)}" y="${f1(yb)}" width="${f1(Math.max(len,1))}" height="${bh}" fill="${PAL[0]}"/>`;
+    } else {
+      // Se a comparação 2 estiver em "total por classe", as partes passam do
+      // total: a barra mostra então a proporção entre elas.
+      const sF=fs.reduce((s,f)=>s+f.valor,0)||1;
+      const segs=[]; let outras=0;
+      for(const f of fs){ if(cores.has(f.nome)) segs.push(f); else outras+=f.valor; }
+      segs.sort((a,b)=>posLeg.get(a.nome)-posLeg.get(b.nome));
+      if(outras>0) segs.push({nome:OUTRAS,valor:outras,outra:true});
+      let x=x0;
+      for(const f of segs){
+        const w=len*f.valor/sF; if(w<=0) continue;
+        const cor=f.outra?COR_OUT:cores.get(f.nome);
+        o+=`<rect class="it" data-n="${it.nome} › ${f.nome}" data-v="${f.valor}" data-p="${it.valor}" x="${f1(x)}" y="${f1(yb)}" width="${f1(w)}" height="${bh}" fill="${cor}" stroke="var(--fundo)" stroke-width="0.6"/>`;
+        const p=pcBR(100*f.valor/sF,0);
+        if(w>=largura(p,10,600)+8)
+          o+=`<text x="${f1(x+w/2)}" y="${f1(yb+bh/2+3.5)}" text-anchor="middle" font-size="10" font-weight="600" fill="${corTexto(cor)}" pointer-events="none">${p}</text>`;
+        x+=w;
+      }
+    }
+    o+='</g>';
+    y+=rowH;
+  });
+  GH=Math.round(y+6);
+  return o;
+}
+
+function upset(){
+  const U=window.__ult, d1=dim(0), dd=D.dimensoes[d1];
+  if(!U.combos){
+    return mensagemGrafico(`O gráfico de sobreposições mostra quais categorias se acumulam no mesmo pixel. `+
+      `${dd.rotulo} tem uma classe só por pixel, então não há sobreposição para mostrar: `+
+      `escolha outra comparação 1, como Categoria territorial.`);
+  }
+  const todos=U.combos.slice().sort((a,b)=>b.valor-a.valor);
+  const combos=todos.filter(c=>c.membros.length);
+  const fora=todos.filter(c=>!c.membros.length).reduce((s,c)=>s+c.valor,0);
+  if(!combos.length) return mensagemGrafico(`Nenhum pixel da seleção está em alguma categoria de ${dd.rotulo}.`);
+  const estreito=GW<640, colW=estreito?24:28;
+  const nomeW=Math.max(96,Math.min(210,GW*(estreito?0.36:0.2)));
+  const tamW=estreito?0:Math.max(70,Math.min(150,GW*0.13));
+  const x0=tamW+nomeW+(tamW?18:8);
+  const nCols=Math.max(1,Math.floor((GW-x0-6)/colW));
+  const cols=combos.slice(0,nCols), resto=combos.slice(nCols);
+  const incl=U.incl||new Map();
+  const conj=[...new Set(cols.flatMap(c=>c.membros))].sort((a,b)=>(incl.get(b)||0)-(incl.get(a)||0));
+  const rowH=22, topo=62, barH=estreito?110:150, yb=topo+barH, yM=yb+12;
+  const maxV=cols[0].valor, maxI=Math.max(...conj.map(n=>incl.get(n)||0))||1;
+  let o='';
+  // Legenda e títulos na coluna da esquerda, que fica vazia acima das linhas.
+  const xl=x0-10, lw=x0-14;
+  o+=`<text x="${f1(xl)}" y="${f1(topo+8)}" text-anchor="end" font-size="9.5" font-weight="600" fill="var(--suave)">${cabe('ÁREA DE CADA COMBINAÇÃO',9.5,lw,600)}</text>`;
+  [['var(--verde)','uma categoria só'],[PAL[2],'sobreposição']].forEach(([c,t],k)=>{
+    const yy=topo+28+k*17, tt=cabe(t,11,lw-16);
+    o+=`<rect x="${f1(xl-largura(tt,11)-15)}" y="${f1(yy-9)}" width="10" height="10" rx="2" fill="${c}"/>`+
+       `<text x="${f1(xl)}" y="${f1(yy)}" text-anchor="end" font-size="11" fill="var(--tinta)">${tt}</text>`;
+  });
+  if(tamW) o+=`<text x="2" y="${f1(yM-5)}" font-size="9.5" font-weight="600" fill="var(--suave)">${cabe('TOTAL DA CATEGORIA',9.5,x0-14,600)}</text>`;
+  conj.forEach((n,r)=>{
+    const y=yM+r*rowH, ti=incl.get(n)||0;
+    if(r%2===0) o+=`<rect x="0" y="${f1(y)}" width="${f1(x0+cols.length*colW+4)}" height="${rowH}" fill="var(--painel)"/>`;
+    o+=`<g class="it" data-n="${n}" data-v="${ti}"><rect x="0" y="${f1(y)}" width="${f1(x0)}" height="${rowH}" fill="transparent"/>`+
+       `<text x="${f1(x0-8)}" y="${f1(y+rowH/2+4)}" text-anchor="end" font-size="11" fill="var(--tinta)">${cabe(n,11,nomeW-6)}</text>`;
+    if(tamW){ const w=Math.max(1,tamW*ti/maxI);
+      o+=`<rect x="${f1(tamW-w)}" y="${f1(y+6)}" width="${f1(w)}" height="${rowH-12}" rx="2" fill="${PAL[1]}" fill-opacity="0.8"/>`; }
+    o+='</g>';
+  });
+  o+=`<line x1="${f1(x0)}" x2="${f1(x0+cols.length*colW)}" y1="${yb}" y2="${yb}" stroke="var(--linha)"/>`;
+  cols.forEach((c,i)=>{
+    const cx=x0+i*colW+colW/2, h=Math.max(1.5,barH*c.valor/maxV);
+    const cor=c.membros.length>1?PAL[2]:'var(--verde)';
+    const rs=c.membros.map(n=>conj.indexOf(n)).sort((a,b)=>a-b);
+    o+=`<g class="it" data-n="${c.nome}" data-v="${c.valor}">`+
+       `<rect x="${f1(cx-colW/2)}" y="${f1(topo-55)}" width="${colW}" height="${f1(yM+conj.length*rowH-topo+55)}" fill="transparent"/>`+
+       `<rect x="${f1(cx-colW*0.32)}" y="${f1(yb-h)}" width="${f1(colW*0.64)}" height="${f1(h)}" rx="2" fill="${cor}"/>`;
+    const lx=cx+3.5, ly=yb-h-5;
+    o+=`<text x="${f1(lx)}" y="${f1(ly)}" transform="rotate(-90 ${f1(lx)} ${f1(ly)})" font-size="9.5" fill="var(--suave)">${fmtCurto(c.valor)}</text>`;
+    if(rs.length>1) o+=`<line x1="${f1(cx)}" x2="${f1(cx)}" y1="${f1(yM+rs[0]*rowH+rowH/2)}" y2="${f1(yM+rs[rs.length-1]*rowH+rowH/2)}" stroke="var(--tinta)" stroke-width="2"/>`;
+    conj.forEach((n,r)=>{ const em=rs.includes(r);
+      o+=`<circle cx="${f1(cx)}" cy="${f1(yM+r*rowH+rowH/2)}" r="${em?5:4}" fill="${em?'var(--tinta)':'var(--linha)'}"/>`; });
+    o+='</g>';
+  });
+  let yN=yM+conj.length*rowH+18;
+  const notas=[];
+  if(resto.length) notas.push(`+ ${resto.length} combinações menores, que somam ${fmt(resto.reduce((s,c)=>s+c.valor,0))} ha`);
+  if(fora>0) notas.push(`fora de todas as categorias: ${fmt(fora)} ha`);
+  for(const t of notas){ o+=`<text x="4" y="${f1(yN)}" font-size="11" fill="var(--suave)">${cabe(t,11,GW-8)}</text>`; yN+=16; }
+  GH=Math.round(yN);
+  return o;
+}
+
+// A taxa usa sempre o Brasil inteiro como base: no recorte todo pixel já é
+// desmatamento e ela daria 100%. O filtro de desmatamento sai da conta porque
+// é ele o numerador. Fica em cache: só muda com filtro, estado ou comparação 1.
+let taxaCache=null;
+const SEM_TAXA={fundiario:1,tamanho:1};
+function dadosTaxa(){
+  const d1=dim(0);
+  const chave=JSON.stringify([estado,[...classesSel].sort(),ufSel,d1,nivelUso]);
+  if(taxaCache&&taxaCache.chave===chave) return taxaCache;
+  const e7=estado[7]; delete estado[7];
+  const ok=filtro();
+  if(e7!==undefined) estado[7]=e7;
+  const L=leitor(d1), tot=new Map(), des=new Map(); let T0=0, D0=0;
+  const T=D.mestre;
+  for(let i=0;i<T.length;i++){
+    const r=T[i], v=r[0], u=r[1], a=r[2];
+    if(!passaUF(u)||!ok(v,u)) continue;
+    const dz=(v>>>7)&1; T0+=a; if(dz) D0+=a;
+    for(const k of L.lista.som(v,u)){ tot.set(k,(tot.get(k)||0)+a); if(dz) des.set(k,(des.get(k)||0)+a); }
+  }
+  const linhas=[...tot.entries()].map(([nome,t])=>{ const d=des.get(nome)||0; return {nome,t,d,taxa:d/t}; })
+    .filter(x=>x.t>0).sort((a,b)=>b.taxa-a.taxa||b.t-a.t);
+  return taxaCache={chave,linhas,T0,D0};
+}
+const pcTaxa=x=>x>0&&x<0.0001?'<0,01%':pcBR(100*x,x<0.01?2:1);
+function passoBonito(max){
+  const bruto=max/4, p=10**Math.floor(Math.log10(bruto)), r=bruto/p;
+  return (r<=1?1:r<=2?2:r<=2.5?2.5:r<=5?5:10)*p;
+}
+function taxa(){
+  const d1=dim(0), dd=D.dimensoes[d1];
+  if(SEM_TAXA[d1]) return mensagemGrafico(`${dd.rotulo} só foi calculada para os imóveis que cruzam o `+
+    `desmatamento de 2024: fora dele a categoria não existe, e a taxa daria 100% por construção. `+
+    `Escolha outra comparação 1, como Categoria territorial ou Uso do solo.`);
+  if(d1==='prodes') return mensagemGrafico('A comparação 1 é o próprio desmatamento: a taxa seria 100% '+
+    'de um lado e 0% do outro. Escolha outra comparação 1, como Categoria territorial.');
+  const {linhas,T0,D0}=dadosTaxa();
+  if(!linhas.length||!T0) return mensagemGrafico('Nenhuma área na seleção.');
+  const media=D0/T0, maxT=Math.max(media,...linhas.map(x=>x.taxa))||1e-9;
+  const passo=passoBonito(maxT), topoEsc=Math.ceil(maxT/passo)*passo;
+  const estreito=GW<640;
+  const labW=estreito?0:Math.max(120,Math.min(240,GW*0.25)), valW=estreito?0:200;
+  const x0=estreito?4:labW+12, barW=Math.max(40,GW-x0-valW-(estreito?6:10));
+  const rowH=estreito?40:28, bh=12, yIni=40;
+  const X=t=>x0+barW*t/topoEsc;
+  let o='';
+  const yFim=yIni+linhas.length*rowH;
+  for(let t=0;t<=topoEsc+1e-12;t+=passo){
+    const tt=pcBR(100*t,passo*100<0.1?2:passo*100<1?1:0), wt=largura(tt,9.5), xt=X(t);
+    const anc=xt-wt/2<2?'start':(xt+wt/2>GW-2?'end':'middle');
+    o+=`<line x1="${f1(xt)}" x2="${f1(xt)}" y1="${yIni-6}" y2="${f1(yFim)}" stroke="var(--linha)" stroke-width="${t?0.7:1.2}"/>`+
+       `<text x="${f1(xt)}" y="${yIni-10}" text-anchor="${anc}" font-size="9.5" fill="var(--suave)">${tt}</text>`;
+  }
+  const xm=X(media);
+  o+=`<line x1="${f1(xm)}" x2="${f1(xm)}" y1="${yIni-4}" y2="${f1(yFim)}" stroke="var(--tinta)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  linhas.forEach((x,i)=>{
+    const y=yIni+i*rowH, yb=estreito?y+20:y+(rowH-bh)/2;
+    const val=`${pcTaxa(x.taxa)} · ${fmtCurto(x.d)} de ${fmtCurto(x.t)} ha`;
+    const dica=`<b>${x.nome}</b><br>${pcTaxa(x.taxa)} desmatado em 2024<br>${fmt(x.d)} de ${fmt(x.t)} ha`;
+    o+=`<g class="it" data-dica="${escAttr(dica)}"><rect x="0" y="${f1(y)}" width="${GW}" height="${rowH}" fill="transparent"/>`;
+    if(estreito){
+      const wv=largura(val,10.5);
+      o+=`<text x="4" y="${f1(y+13)}" font-size="11.5" font-weight="600" fill="var(--tinta)" ${HALO}>${cabe(x.nome,11.5,GW-wv-18,600)}</text>`+
+         `<text x="${GW-4}" y="${f1(y+13)}" text-anchor="end" font-size="10.5" fill="var(--suave)" ${HALO}>${val}</text>`;
+    } else {
+      o+=`<text x="${f1(labW)}" y="${f1(yb+bh/2+4)}" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--tinta)">${cabe(x.nome,11.5,labW-4,600)}</text>`;
+    }
+    const w=Math.max(x.d>0?1.5:0,X(x.taxa)-x0);
+    o+=`<rect x="${f1(x0)}" y="${f1(yb)}" width="${f1(w)}" height="${bh}" rx="2" fill="${PAL[5]}"/>`;
+    if(!estreito) o+=`<text x="${f1(x0+w+6)}" y="${f1(yb+bh/2+4)}" font-size="10.5" fill="var(--suave)" ${HALO}>${val}</text>`;
+    o+='</g>';
+  });
+  const tm=`média da seleção: ${pcTaxa(media)}`, wm=largura(tm,10,600);
+  const ancDir=xm+6+wm>GW-4;
+  o+=`<text x="${f1(ancDir?xm-6:xm+6)}" y="${f1(yFim+16)}" text-anchor="${ancDir?'end':'start'}" font-size="10" font-weight="600" fill="var(--tinta)">${tm}</text>`;
+  GH=Math.round(yFim+26);
+  return o;
+}
+function notaGrafico(){
+  const n=document.getElementById('gNota');
+  const r1=(D.dimensoes[dim(0)]||{}).rotulo||'', r2=eixos.length>1?D.dimensoes[dim(1)].rotulo:'';
+  const so1=eixos.length>1?' Este gráfico usa só a comparação 1.':'';
+  n.innerHTML = vis==='barra'
+      ? (r2?`Cada barra é uma categoria de <b>${r1}</b>, dividida por <b>${r2}</b>`+
+            (barraModo==='pct'?'; cada barra soma 100%, para comparar a composição.':'.')
+          :`Cada barra é uma categoria de <b>${r1}</b>.`)
+    : vis==='upset'
+      ? `Cada coluna é uma combinação de categorias de <b>${r1}</b>: as bolinhas mostram quais estão `+
+        `juntas no mesmo pixel, e a barra, quantos hectares. Em laranja, as sobreposições. À esquerda, `+
+        `o total de cada categoria, contando a sobreposição.`+so1
+    : vis==='taxa'
+      ? `Quanto de cada categoria de <b>${r1}</b> foi desmatado em 2024: área desmatada ÷ área total da `+
+        `categoria, no Brasil inteiro${ufSel?' (no estado escolhido)':''}, com os filtros escolhidos — `+
+        `menos o de desmatamento, que é o que se mede. A linha tracejada é a média.`+so1
+    : '';
+}
+
 function info(texto, titulo){
   // Um ⓘ que abre a explicação ali mesmo. Espalhado pelos controles, porque
   // nome curto nenhum carrega sozinho a diferença entre as três leituras.
@@ -1261,6 +1579,13 @@ document.getElementById('g').addEventListener('mousemove',ev=>{
   const el=ev.target.closest&&ev.target.closest('#g .it');
   if(!el){ tip.style.opacity=0; return; }
   const sel=window.__ult?window.__ult.area:0;
+  if(el.dataset.dica){
+    tip.innerHTML=el.dataset.dica; tip.style.opacity=1;
+    tip.style.left=Math.max(8,Math.min(ev.clientX+14,innerWidth-tip.offsetWidth-8))+'px';
+    tip.style.top=(ev.clientY+14+tip.offsetHeight>innerHeight-8
+      ? Math.max(8,ev.clientY-tip.offsetHeight-10) : ev.clientY+14)+'px';
+    return;
+  }
   const v=+el.dataset.v, n=el.dataset.n;
   const pai=+(el.dataset.p||0);
   let h=`<b>${n.replace(' › ','</b> › <b>')}</b><br>${fmt(v)} ha`;
@@ -1305,6 +1630,7 @@ function estadoParaURL(){
   p.set('e',eixos.map(x=>x.d+':'+x.m).join(','));
   p.set('us',nivelUso);
   if(vis!=='tree') p.set('g',vis);
+  if(vis==='barra'&&barraModo==='pct') p.set('bm','pct');
   if(calcSel.size) p.set('k',[...calcSel].join(','));
   return location.origin+location.pathname+'?'+p.toString();
 }
@@ -1322,7 +1648,8 @@ function aplicaURL(){
     .map(x=>({d:x.split(':')[0], m:MODOS.includes(x.split(':')[1])?x.split(':')[1]:'sep'}))
     .filter(x=>D.dimensoes[x.d]);
   if(e.length) eixos=e;
-  if(['tree','sun','anel','sank'].includes(p.get('g'))) vis=p.get('g');
+  if(VIS.some(([,v])=>v===p.get('g'))) vis=p.get('g');
+  if(p.get('bm')==='pct') barraModo='pct';
   return true;
 }
 
@@ -1338,36 +1665,52 @@ function bitsPorRotulo(){
   for(const [g,bits] of D.grupos) for(const [b,rot] of bits) m.set(b,{rot,grupo:g});
   return m;
 }
+// Duplas que o time mais pergunta; só aparecem quando nada foi escolhido.
+const CALC_SUGESTOES=[[8,16],[9,10],[28,29],[8,24]];
+const GRUPO_CURTO={'Desmatamento':'Desmatamento','Cadastro':'Cadastro','Categoria da UC (SNUC)':'UC',
+  'Aderência do CAR ao fundiário — SIGEF e SNCI separados':'Aderência','Tamanho do imóvel':'Tamanho',
+  'Categorias territoriais':'Territorial','Contorno da parcela — SIGEF e SNCI separados':'Parcela'};
+const CORES_K=['#175345','#C9A227','#B36E38','#C0512F','#7E5A9B','#2B6A8F'];
 function montaCalc(){
   const c=document.getElementById('calc'); const U=window.__ult;
   if(!c||!U) return;
   const cat=bitsPorRotulo();
-  let h=`<h3>Calculadora de sobreposição</h3>`
-       +`<div style="color:var(--suave);font-size:12.5px;margin-bottom:9px">`
-       +`Escolha categorias de <b>qualquer</b> grupo — dá para cruzar camadas `
-       +`diferentes. Elas respeitam os filtros já aplicados.</div>`;
-  for(const [g,bits] of D.grupos){
-    h+=`<div style="font-size:11.5px;color:var(--suave);margin:7px 0 3px;`
-      +`text-transform:uppercase;letter-spacing:.04em">${g}</div><div>`;
-    for(const [b,rot] of bits)
-      h+=`<span class="chip" data-cb="${b}" style="cursor:pointer`
-        +(calcSel.has(b)?';background:var(--verde);color:var(--fundo);'
-                        +'border-color:var(--verde)':'')+`">${rot}</span>`;
-    h+='</div>';
+  for(const b of [...calcSel]) if(!cat.has(b)) calcSel.delete(b);
+  const nome=b=>cat.get(b).rot, grupo=b=>cat.get(b).grupo;
+  const curto=g=>GRUPO_CURTO[g]||g.split(' — ')[0];
+  const bits=[...calcSel], n=bits.length;
+  let h=`<h3>Calculadora de sobreposição <span id="iCalc"></span></h3>`+
+    `<p class="calcSub">Escolha duas ou mais categorias, de qualquer grupo, e veja quanto elas se `+
+    `sobrepõem. A conta respeita os filtros e o estado já escolhidos.</p>`;
+  h+=`<div class="calcEscolha"><select id="calcAdd" aria-label="adicionar categoria à calculadora">`+
+     `<option value="">+ adicionar categoria…</option>`;
+  for(const [g,bs] of D.grupos){
+    const livres=bs.filter(([b])=>!calcSel.has(b)); if(!livres.length) continue;
+    h+=`<optgroup label="${escAttr(g)}">`+livres.map(([b,r])=>`<option value="${b}">${r}</option>`).join('')+'</optgroup>';
   }
+  h+='</select>';
+  if(n) h+='<div class="fichas">'+bits.map(b=>
+      `<span class="ficha"><small>${curto(grupo(b))}</small>${nome(b)}`+
+      `<button type="button" data-tira="${b}" aria-label="tirar ${escAttr(nome(b))}">×</button></span>`).join('')+
+    `<button type="button" class="limpaCalc" data-limpa="1">limpar</button></div>`;
+  h+='</div>';
 
-  if(calcSel.size>=1){
-    const bits=[...calcSel];
-    // "so estas" e relativo aos GRUPOS tocados pela escolha: estar nestas e em
+  if(!n){
+    const sug=CALC_SUGESTOES.filter(s=>s.every(b=>cat.has(b)));
+    h+=`<div class="calcVazio">Nenhuma categoria escolhida ainda. Comece por uma destas comparações:`+
+       `<div class="sugs">`+sug.map(s=>`<button type="button" data-sug="${s.join(',')}">`+
+         s.map(nome).join(' <span class="x">×</span> ')+'</button>').join('')+'</div></div>';
+    window.__calc=null;
+  } else {
+    // "Só nestas" é relativo aos GRUPOS tocados pela escolha: estar nestas e em
     // nenhuma outra categoria dos mesmos grupos.
-    const grupos=new Set(bits.map(b=>cat.get(b)?cat.get(b).grupo:null));
+    const grupos=new Set(bits.map(grupo));
     const irmaos=[];
     for(const [g,bs] of D.grupos) if(grupos.has(g))
       for(const [b] of bs) if(!calcSel.has(b)) irmaos.push(b);
-
     const T=D[universo], ok=filtro();
     let uniao=0, inter=0, soEstas=0;
-    const mb=bits.map(bitMask), somaB=bits.map(()=>0);
+    const mb=bits.map(bitMask), somaB=bits.map(()=>0), porK=new Array(n+1).fill(0);
     let iv=0, iu=0;
     for(const b of irmaos){ const [x,y]=bitMask(b); iv|=x; iu|=y; }
     for(let i=0;i<T.length;i++){
@@ -1376,50 +1719,61 @@ function montaCalc(){
       let k=0;
       for(let j=0;j<mb.length;j++) if((v&mb[j][0])||(u&mb[j][1])){k++; somaB[j]+=a;}
       if(!k) continue;
-      uniao+=a;
-      if(k===bits.length) inter+=a;
+      uniao+=a; porK[k]+=a;
+      if(k===n) inter+=a;
       if(!((v&iv)||(u&iu))) soEstas+=a;
     }
-    const iso=new Map(bits.map((b,j)=>[b,somaB[j]]));
-    const soma=[...iso.values()].reduce((x,y)=>x+y,0);
-    const dupla=soma-uniao;
-    const pc=x=>nBR(100*x/U.area,2);
-    const lin=(rot,val,cor,nota)=>`<tr><td style="padding:5px 0">${rot}`
-      +(nota?`<div style="color:var(--suave);font-size:11.5px;line-height:1.4">${nota}</div>`:'')
-      +`</td><td class="n" style="padding:5px 0;${cor||''}">${fmt(val)}</td>`
-      +`<td class="n" style="padding:5px 0;${cor||''}">${pc(val)}</td></tr>`;
-    h+=`<table style="width:100%;margin-top:12px"><tr><th style="text-align:left">Medida</th>`
-      +`<th style="text-align:right">Área (ha)</th>`
-      +`<th style="text-align:right">% da seleção</th></tr>`;
-    h+=lin('<b>União</b> — em pelo menos uma delas', uniao, 'font-weight:600',
-           'é este o número que se usa. Cada pixel uma vez só.');
-    if(bits.length>1){
-      h+=lin('Soma dos filtros isolados', soma, '',
-             'o que daria somar cada categoria separadamente');
-      h+=lin('<b>Dupla contagem</b>', dupla,
-             dupla>0?'color:#d98a6a;font-weight:600':'',
-             dupla>0?'a soma acima excede a união nisto. É o erro que se comete ao somar.'
-                    :'nenhuma: as categorias escolhidas não se tocam.');
-      h+=lin('<b>Interseção</b> — em TODAS ao mesmo tempo', inter, 'font-weight:600',
-             'o chão que pertence simultaneamente a todas as escolhidas');
+    const soma=somaB.reduce((x,y)=>x+y,0), dupla=soma-uniao;
+    window.__calc={uniao,inter,soma,dupla,soEstas,iso:bits.map((b,j)=>[b,somaB[j]]),porK};
+    const pc=x=>!U.area?'—':(x>0&&100*x/U.area<0.005?'<0,01%':pcBR(100*x/U.area,2));
+    const card=(t,v,nota,cls)=>`<div class="ccard ${cls||''}"><div class="t">${t}</div><b>${fmt(v)} ha</b>`+
+      `<div class="p">${pc(v)} da seleção</div>${nota?`<div class="nota">${nota}</div>`:''}</div>`;
+    h+='<div class="ccards">';
+    h+=card(n>1?'Em pelo menos uma':'Área da categoria',uniao,
+            n>1?'a união — é o número a usar: cada pixel conta uma vez':'');
+    if(n>1){
+      h+=card('Em todas ao mesmo tempo',inter,'a interseção: o chão que é das '+(n===2?'duas':`${n}`)+' ao mesmo tempo');
+      h+=card('A mais, se somar separadas',dupla,
+              dupla>0?`somar as ${n} isoladas daria ${fmt(soma)} ha — a dupla contagem`:'nenhuma: elas não se tocam',
+              dupla>0?'alerta':'');
     }
-    h+=lin('Só nestas', soEstas, '',
-           'e em nenhuma outra categoria dos grupos envolvidos: '
-           +[...grupos].join(', '));
-    h+='</table>';
-    if(bits.length>1)
-      h+=`<div style="margin-top:9px;font-size:12px;color:var(--suave);line-height:1.5">`
-        +`Isolada: `+bits.map(b=>`<b>${cat.get(b)?cat.get(b).rot:b}</b> ${fmt(iso.get(b))}`)
-                         .join(' · ')+`</div>`;
-    h+=`<div style="margin-top:9px"><span class="chip" data-cblimpa="1" `
-      +`style="cursor:pointer">limpar escolha</span></div>`;
+    h+=card('Só nestas',soEstas,'sem nenhuma outra categoria de: '+[...grupos].map(curto).join(', '));
+    h+='</div>';
+    if(n>1&&uniao>0){
+      // Como a união se divide: com duas categorias, "só A / as duas / só B";
+      // com mais, pelo número de escolhidas em que cada pixel está.
+      const segs = n===2
+        ? [[`só ${nome(bits[0])}`,somaB[0]-inter,CORES_K[0]],['nas duas',inter,CORES_K[1]],[`só ${nome(bits[1])}`,somaB[1]-inter,CORES_K[5]]]
+        : porK.slice(1).map((v,k)=>[k+1===n?`em todas (${n})`:k===0?'em 1 só':`em ${k+1}`,v,CORES_K[Math.min(k,CORES_K.length-1)]]);
+      h+=`<div class="decomp"><div class="dtit">Como a união se divide</div><div class="dbar">`+
+         segs.filter(s=>s[1]>0).map(([t,v,cor])=>{ const p=100*v/uniao;
+           return `<span style="width:${p}%;background:${cor};color:${corTexto(cor)}" title="${escAttr(t)}: ${fmt(v)} ha">`+
+                  `${p>=9?pcBR(p,0):''}</span>`; }).join('')+'</div>'+
+         `<div class="dleg">`+segs.map(([t,v,cor])=>`<span><i style="background:${cor}"></i>${t}: <b>${fmt(v)} ha</b></span>`).join('')+'</div></div>';
+    }
+    if(n>1){
+      const maxI=Math.max(...somaB)||1;
+      h+='<div class="dtit" style="margin-top:14px">Cada uma, isolada</div><div class="isol">'+bits.map((b,j)=>
+        `<div class="isolLin"><span class="nm"><small>${curto(grupo(b))}</small> ${nome(b)}</span>`+
+        `<span class="trilho"><span class="bar" style="width:${100*somaB[j]/maxI}%"></span></span>`+
+        `<span class="n">${fmt(somaB[j])} ha</span><span class="n">${pc(somaB[j])}</span></div>`).join('')+'</div>';
+    }
   }
   c.innerHTML=h;
-  c.querySelectorAll('[data-cb]').forEach(el=>{el.onclick=()=>{
-    const b=+el.dataset.cb; calcSel.has(b)?calcSel.delete(b):calcSel.add(b);
-    montaCalc();};});
-  const lp=c.querySelector('[data-cblimpa]');
-  if(lp) lp.onclick=()=>{calcSel.clear(); montaCalc();};
+  document.getElementById('iCalc').appendChild(info(
+    '<b>Em pelo menos uma</b> (união): a área que está em alguma das escolhidas, cada pixel uma vez só.<br><br>'+
+    '<b>Em todas ao mesmo tempo</b> (interseção): a área que pertence a todas as escolhidas juntas.<br><br>'+
+    '<b>A mais, se somar separadas</b>: quanto a soma das áreas isoladas passa da união — é a dupla '+
+    'contagem que aparece quando se somam filtros feitos um de cada vez.<br><br>'+
+    '<b>Só nestas</b>: está nas escolhidas e em nenhuma outra categoria dos mesmos grupos.',
+    'Como ler a calculadora'));
+  const sel=document.getElementById('calcAdd');
+  sel.onchange=()=>{ if(sel.value){ calcSel.add(+sel.value); montaCalc(); } };
+  c.querySelectorAll('[data-tira]').forEach(el=>el.onclick=()=>{ calcSel.delete(+el.dataset.tira); montaCalc(); });
+  c.querySelectorAll('[data-sug]').forEach(el=>el.onclick=()=>{
+    calcSel.clear(); el.dataset.sug.split(',').forEach(b=>calcSel.add(+b)); montaCalc(); });
+  const lp=c.querySelector('[data-limpa]');
+  if(lp) lp.onclick=()=>{ calcSel.clear(); montaCalc(); };
 }
 
 const selLinhas=new Set();
@@ -1501,11 +1855,17 @@ function tabela(arr,area){
   if(mi) mi.onclick=()=>{verIrrelevantes=!verIrrelevantes; tabela(arr,area);};
 }
 
-for(const [id,v] of [['vTree','tree'],['vSun','sun'],['vAnel','anel'],['vSank','sank']])
+const VIS=[['vTree','tree'],['vBarra','barra'],['vSun','sun'],['vAnel','anel'],['vSank','sank'],['vUpset','upset'],['vTaxa','taxa']];
+for(const [id,v] of VIS)
   document.getElementById(id).onclick=()=>{vis=v;sincV();};
+document.querySelectorAll('[data-bm]').forEach(b=>b.onclick=()=>{
+  barraModo=b.dataset.bm; marcaV();
+  if(window.__ult&&!agendado) desenha(window.__ult.arr,window.__ult.area);
+});
 function marcaV(){
-  for(const [id,v] of [['vTree','tree'],['vSun','sun'],['vAnel','anel'],['vSank','sank']])
-    document.getElementById(id).setAttribute('aria-pressed',vis===v);
+  for(const [id,v] of VIS) document.getElementById(id).setAttribute('aria-pressed',vis===v);
+  document.getElementById('opBarra').hidden = vis!=='barra';
+  document.querySelectorAll('[data-bm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.bm===barraModo));
 }
 function sincV(){
   marcaV();
