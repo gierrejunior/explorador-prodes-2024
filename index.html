@@ -130,7 +130,7 @@ const tip=document.getElementById('tip');
 const PAL=['#175345','#2B6A8F','#B36E38','#7E5A9B','#2E7D5B','#C0512F','#C9A227','#5C8374',
            '#8C6D62','#4A7C8C','#9B6A4F','#6B7C81'];
 
-const EXPLICA = {"Desmatamento": "O que o PRODES/INPE apontou como desmatamento no ano de 2024. O ano PRODES vai de agosto a julho, não coincide com o ano civil.", "Cadastro": "Se o pixel está dentro de algum imóvel declarado no CAR (base de agosto). O CAR é autodeclaratório e tem imóveis sobrepostos — por isso um mesmo pixel pode pertencer a dois imóveis de portes diferentes.", "Aderência do CAR ao fundiário — SIGEF e SNCI separados": "Compara o imóvel do CAR com a parcela fundiária certificada. Aderente é 90% ou mais de sobreposição nos dois sentidos. SIGEF e SNCI são bits independentes e nunca foram fundidos: ligue um só para ver cada sistema, ou os dois para ver onde se superpõem. Atenção: a geometria aqui é a do CAR, não a da parcela — para o contorno da parcela, use o outro grupo.", "Tamanho do imóvel": "Classificação do imóvel do CAR em módulos fiscais: pequena até 4, média acima de 4 e até 15, grande acima de 15. Só foi calculada para os 267.102 imóveis que cruzam o desmatamento de 2024.", "Categorias territoriais": "As doze destinações públicas mais o CAR. Não são exclusivas entre si: há áreas com dupla designação, e elas aparecem como combinação.", "Contorno da parcela — SIGEF e SNCI separados": "O contorno da parcela fundiária certificada, independente de haver CAR por cima. É diferente da aderência: aqui a geometria é a da parcela. SIGEF e SNCI são bits independentes — o SNCI é o sistema legado do SIGEF, então o mesmo chão pode acender os dois, e é assim que se mede a superposição entre eles.", "Uso do solo": "A classe do MapBiomas Coleção 4 para o ano de 2025, em todo pixel do Brasil — inclusive fora do desmatamento. A Coleção 4 é a única publicada na grade de 10 m; a versão anterior deste explorador usava a Coleção 11, a 30 m."};
+const EXPLICA = {"Sobreposição entre imóveis do CAR": "Dois cadastros declarando o mesmo chão. Três classes, decididas pelo time: ínfima (menos de 1 ha E menos de 10% do menor dos dois — encosto de vizinho), aderente (90% ou mais nos dois sentidos — o mesmo imóvel cadastrado duas vezes) e sobreposição, o intermediário. ATENÇÃO às duas leituras: os bits de ÁREA SOBREPOSTA acendem só o pedaço em que os dois se cobrem e medem hectares; os bits de IMÓVEL acendem a propriedade inteira que participa e medem ALCANCE, não área — o de ínfima acende 78% dos imóveis do CAR por causa de lascas de poucos metros, então não some os hectares dele.", "Desmatamento": "O que o PRODES/INPE apontou como desmatamento no ano de 2024. O ano PRODES vai de agosto a julho, não coincide com o ano civil.", "Cadastro": "Se o pixel está dentro de algum imóvel declarado no CAR (base de agosto). O CAR é autodeclaratório e tem imóveis sobrepostos — por isso um mesmo pixel pode pertencer a dois imóveis de portes diferentes.", "Aderência do CAR ao fundiário — SIGEF e SNCI separados": "Compara o imóvel do CAR com a parcela fundiária certificada. Aderente é 90% ou mais de sobreposição nos dois sentidos. SIGEF e SNCI são bits independentes e nunca foram fundidos: ligue um só para ver cada sistema, ou os dois para ver onde se superpõem. Atenção: a geometria aqui é a do CAR, não a da parcela — para o contorno da parcela, use o outro grupo.", "Tamanho do imóvel": "Classificação do imóvel do CAR em módulos fiscais: pequena até 4, média acima de 4 e até 15, grande acima de 15. Só foi calculada para os 267.102 imóveis que cruzam o desmatamento de 2024.", "Categorias territoriais": "As doze destinações públicas mais o CAR. Não são exclusivas entre si: há áreas com dupla designação, e elas aparecem como combinação.", "Contorno da parcela — SIGEF e SNCI separados": "O contorno da parcela fundiária certificada, independente de haver CAR por cima. É diferente da aderência: aqui a geometria é a da parcela. SIGEF e SNCI são bits independentes — o SNCI é o sistema legado do SIGEF, então o mesmo chão pode acender os dois, e é assim que se mede a superposição entre eles.", "Uso do solo": "A classe do MapBiomas Coleção 4 para o ano de 2025, em todo pixel do Brasil — inclusive fora do desmatamento. A Coleção 4 é a única publicada na grade de 10 m; a versão anterior deste explorador usava a Coleção 11, a 30 m."};
 function montaFiltros(){
   const c=document.getElementById('filtros'); c.innerHTML='';
   for(const [g,bits] of D.grupos){
@@ -340,6 +340,14 @@ function rotulosDim(dim,v,u){
   const ac=d.bits.filter(([b])=>temBit(v,u,b));
   return ac.length?ac.map(x=>x[1]):[d.vazio||'Nenhum'];
 }
+function nBitsDim(dim,v,u){
+  // Quantas categorias do eixo este pixel acende. Serve ao aviso de rodape:
+  // e exatamente a area que seria contada DUAS VEZES se alguem somasse os
+  // filtros separados em vez de ler as combinacoes.
+  const d=D.dimensoes[dim];
+  if(!d||d.tipo==='classe') return 1;
+  return d.bits.filter(([b])=>temBit(v,u,b)).length;
+}
 function rotuloAgr(dimn,v,u){
   // Agrupado: o que se quer saber é quanto há de sobreposição, não quais.
   const d=D.dimensoes[dimn];
@@ -370,7 +378,9 @@ function calcula(){
   // combinacoes: medido, 3 eixos dao 4x mais folhas e MENOS area visivel, porque
   // o excedente vira lasca. No Sankey as colunas seguem com poucos nos.
   const fl23=new Map();
+  let multi=0;
   for(const [v,u,a] of T){ if(!passaUF(u)||!passa(v,u)) continue; area+=a; comb++;
+    if(m1==='sep'&&nBitsDim(d1,v,u)>1) multi+=a;
     const k1s=rot1(v,u);
     const k2s=d2==='—'?[null]:rot2(v,u);
     for(const k1 of k1s){
@@ -458,9 +468,13 @@ function calcula(){
     filhos:[...o.filhos.entries()].map(([n,v])=>({nome:n,valor:v})).sort((a,b)=>b.valor-a.valor)}))
     .sort((a,b)=>b.valor-a.valor);
   // Com rotulo explicito a cauda cresce (territorial chega a 120 combinacoes,
-  // so 11 acima de 0,5%). Abaixo do corte vira um grupo unico, nomeado, e o
-  // CSV continua trazendo tudo separado.
+  // so 11 acima de 0,5%). Abaixo do corte vira um grupo unico, nomeado, APENAS
+  // NA TELA -- o CSV exporta o array 'bruto', sem agrupamento. Antes ele
+  // exportava o agrupado, e a linha "Outras N combinacoes" ia junto para a
+  // planilha, escondendo as combinacoes mistas de quem fosse somar.
   const CORTE=0.004;
+  // Guardado ANTES de agrupar: o CSV e o "expandir" usam este, nunca o agrupado.
+  const bruto=arr.slice();
   if(arr.length>14){
     const gd=arr.filter(x=>x.valor>=CORTE*area), pq=arr.filter(x=>x.valor<CORTE*area);
     if(pq.length>1){
@@ -469,12 +483,12 @@ function calcula(){
       gd.push({nome:`Outras ${pq.length} combinações (cada uma <0,4%)`,
                valor:pq.reduce((s,x)=>s+x.valor,0),
                filhos:[...fil.entries()].map(([n,v])=>({nome:n,valor:v})).sort((a,b)=>b.valor-a.valor),
-               agrupado:pq.length});
+               agrupado:pq.length, itens:pq});
       arr=gd.sort((a,b)=>b.valor-a.valor);
     }
   }
   // Precisa vir antes de desenhar: liga() usa este total para a % da seleção.
-  window.__ult={arr,area};
+  window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1};
   desenha(arr,area); tabela(arr,area);
 }
 function squarify(itens,x,y,w,h){
@@ -849,14 +863,43 @@ function liga(){
     el.addEventListener('mouseleave',()=>tip.style.opacity=0);
   });
 }
+let expandido=false;
 function tabela(arr,area){
   const t=document.getElementById('tab');
   if(!arr.length){t.innerHTML='';return;}
+  const U=window.__ult||{};
+  // Expandir mostra as linhas da cauda em vez do grupo: era nela que as
+  // combinacoes mistas se escondiam, e quem somava a tela errava por isso.
+  let linhas=arr;
+  if(expandido && U.bruto && U.bruto.length) linhas=U.bruto;
   let h='<tr><th>Categoria</th><th style="text-align:right">Área (ha)</th><th style="text-align:right">% da seleção</th></tr>';
-  for(const it of arr.slice(0,14))
-    h+=`<tr><td>${it.nome}</td><td class="n">${fmt(it.valor)}</td><td class="n">${(100*it.valor/area).toFixed(2)}</td></tr>`;
-  if(arr.length>14) h+=`<tr><td colspan="3" style="color:var(--suave)">e mais ${arr.length-14} categorias — use o CSV</td></tr>`;
+  for(const it of linhas.slice(0,expandido?400:14)){
+    const clicavel=!!it.agrupado;
+    h+=`<tr${clicavel?' style="cursor:pointer" data-exp="1" title="clique para abrir as combinações"':''}>`
+      +`<td>${it.nome}${clicavel?' <span style="color:var(--verde)">▸ abrir</span>':''}</td>`
+      +`<td class="n">${fmt(it.valor)}</td>`
+      +`<td class="n">${(100*it.valor/area).toFixed(2)}</td></tr>`;
+  }
+  if(expandido)
+    h+=`<tr data-exp="0" style="cursor:pointer;color:var(--verde)"><td colspan="3">▾ recolher</td></tr>`;
+  else if(linhas.length>14)
+    h+=`<tr><td colspan="3" style="color:var(--suave)">e mais ${linhas.length-14} categorias — o CSV traz todas</td></tr>`;
+
+  // O aviso que faltava: esta e a area que apareceria DUAS VEZES se alguem
+  // somasse filtros separados em vez de ler as combinacoes.
+  if(U.modo==='sep' && U.multi>0){
+    const pc=(100*U.multi/area).toFixed(2);
+    h+=`<tr><td colspan="3" style="color:var(--suave);font-size:12.5px;`
+      +`border-top:1px solid var(--linha);padding-top:9px;line-height:1.5">`
+      +`<b>${fmt(U.multi)} ha (${pc}%)</b> da seleção estão em linhas que combinam `
+      +`mais de uma categoria deste eixo. Aqui cada pixel aparece <b>uma vez só</b>. `
+      +`Se você somar filtros separados — um para cada categoria — essa área `
+      +`é contada <b>duas vezes</b>.</td></tr>`;
+  }
   t.innerHTML=h;
+  t.querySelectorAll('tr[data-exp]').forEach(tr=>{
+    tr.onclick=()=>{expandido=tr.dataset.exp==='1'; tabela(arr,area);};
+  });
 }
 function selects(){
   // No universo do recorte, "Desmatamento 2024" nao separa nada: todo pixel ja
@@ -913,9 +956,12 @@ document.getElementById('limpar').onclick=()=>{
   document.querySelectorAll('.chip').forEach(c=>{c.dataset.e=0;c.querySelector('.m').textContent='·';});
   calcula();};
 document.getElementById('baixar').onclick=()=>{
-  const {arr,area}=window.__ult||{arr:[],area:0};
+  // 'bruto' e o array SEM a cauda agrupada: a planilha tem de trazer todas as
+  // combinacoes, uma por linha, porque e nela que se faz a soma.
+  const {bruto,arr,area}=window.__ult||{bruto:[],arr:[],area:0};
+  const fonte=(bruto&&bruto.length)?bruto:arr;
   let csv='categoria;subcategoria;area_ha;pct_da_selecao\n';
-  for(const it of arr){ if(it.filhos&&it.filhos.length)
+  for(const it of fonte){ if(it.filhos&&it.filhos.length)
       for(const f of it.filhos) csv+=`"${it.nome}";"${f.nome}";${f.valor.toFixed(2)};${(100*f.valor/area).toFixed(4)}\n`;
     else csv+=`"${it.nome}";;${it.valor.toFixed(2)};${(100*it.valor/area).toFixed(4)}\n`;}
   const a=document.createElement('a');
