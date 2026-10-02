@@ -2,9 +2,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Explorador v3 — 10 metros</title>
 <style>
-:root{--tinta:#263D43;--verde:#175345;--suave:#5F7176;--linha:#D8E2DE;--fundo:#fff;--painel:#F5F9F7;--aceso:#175345;--apagado:#B0472F;--sombra:0 1px 2px rgba(23,40,44,.05)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tinta:#E6EDEA;--verde:#7FC3AC;--suave:#9DB0B5;--linha:#2C3B3F;--fundo:#141A1B;--painel:#1B2426;--aceso:#7FC3AC;--apagado:#E08464;--sombra:none}}
-:root[data-theme="dark"]{--tinta:#E6EDEA;--verde:#7FC3AC;--suave:#9DB0B5;--linha:#2C3B3F;--fundo:#141A1B;--painel:#1B2426;--aceso:#7FC3AC;--apagado:#E08464;--sombra:none}
+:root{color-scheme:light;--tinta:#263D43;--verde:#175345;--suave:#5F7176;--linha:#D8E2DE;--fundo:#fff;--painel:#F5F9F7;--aceso:#175345;--apagado:#B0472F;--sombra:0 1px 2px rgba(23,40,44,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--tinta:#E6EDEA;--verde:#7FC3AC;--suave:#9DB0B5;--linha:#2C3B3F;--fundo:#141A1B;--painel:#1B2426;--aceso:#7FC3AC;--apagado:#E08464;--sombra:none}}
+:root[data-theme="dark"]{color-scheme:dark;--tinta:#E6EDEA;--verde:#7FC3AC;--suave:#9DB0B5;--linha:#2C3B3F;--fundo:#141A1B;--painel:#1B2426;--aceso:#7FC3AC;--apagado:#E08464;--sombra:none}
 *{box-sizing:border-box}
 body{margin:0;background:var(--fundo);color:var(--tinta);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
 .wrap{max-width:1360px;margin:0 auto;padding:22px 16px 48px}
@@ -53,19 +53,34 @@ button:hover:not(:disabled){border-color:var(--suave)}
 button:disabled{opacity:.55;cursor:default}
 button:focus-visible,select:focus-visible,.chip:focus-visible,summary:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--verde);color:var(--fundo);border-color:var(--verde)}
-.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-.separar .tit{font-weight:600;color:var(--tinta);font-size:13px;display:inline-flex;align-items:center}
-#eixos{display:flex;flex-wrap:wrap;gap:6px;min-width:0;max-width:100%}
-.eixo{display:inline-flex;align-items:center;gap:3px;max-width:100%;min-width:0;border:1px solid var(--linha);
- border-radius:8px;padding:3px 4px;background:var(--fundo)}
-.eixo select{border:none;background:transparent;min-width:0;max-width:100%;flex:1 1 auto;text-overflow:ellipsis;padding-right:4px}
-.eixo .modo{padding:3px 8px;font-size:11px;border-radius:6px;flex:none;white-space:nowrap}
-.eixo .tira{padding:3px 7px;line-height:1;flex:none}
-.barra{justify-content:space-between;margin:4px 0 12px}
-.seg{display:inline-flex;border:1px solid var(--linha);border-radius:8px;overflow:hidden;background:var(--fundo)}
+.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 20px;flex-wrap:wrap}
+.tema{display:flex;align-items:center;gap:8px;flex:none;margin-top:2px}
+.tema .gtit{margin:0}
+.gtit{font-size:11px;letter-spacing:1px;color:var(--suave);text-transform:uppercase;font-weight:600;
+ margin:0 0 7px;display:flex;align-items:center}
+.painel{border:1px solid var(--linha);border-radius:10px;background:var(--painel);padding:12px 14px;margin-bottom:12px}
+#eixos{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.eixo{display:flex;align-items:center;gap:6px;width:100%;max-width:660px;min-width:0;border:1px solid var(--linha);
+ border-radius:8px;padding:4px 6px;background:var(--fundo)}
+.eixo .num{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid var(--linha);font-size:11px;
+ font-weight:700;color:var(--suave);display:inline-flex;align-items:center;justify-content:center}
+.eixo select{border:none;background:transparent;min-width:0;max-width:100%;flex:1 1 140px;text-overflow:ellipsis;padding:5px 4px}
+.eixo .modo{padding:4px 9px;font-size:11.5px;border-radius:6px;flex:none;white-space:nowrap}
+.eixo .tira{padding:3px 8px;line-height:1;flex:none}
+.add{margin-top:8px;border-style:dashed;color:var(--suave)}
+.add:hover:not(:disabled){color:var(--tinta)}
+.plinha{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;align-items:flex-end;
+ border-top:1px solid var(--linha);margin-top:12px;padding-top:12px}
+.seg{display:inline-flex;border:1px solid var(--linha);border-radius:8px;overflow:hidden;background:var(--fundo);flex:none}
 .seg button{border:0;border-radius:0;border-right:1px solid var(--linha);padding:7px 13px}
 .seg button:last-child{border-right:0}
+.seg.mini button{padding:4px 9px;font-size:11.5px}
 .acoes{display:flex;gap:6px;flex-wrap:wrap}
+.cabUso{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.cabUso h3{margin:0}
+.chip .cor{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.chip[data-e="3"]{border-color:var(--aceso);border-style:dashed;color:var(--aceso)}
+.chip[data-e="3"] .m{color:var(--aceso)}
 .acoes button{color:var(--suave)}
 .acoes button:hover{color:var(--tinta)}
 .aviso{display:none;border:1px solid var(--apagado);border-left-width:4px;border-radius:8px;padding:10px 13px;
@@ -101,15 +116,29 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
  h1{font-size:18px}
  .kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
  .k b{font-size:19px}
- .eixo{display:flex;width:100%}
- .barra{flex-direction:column;align-items:stretch}
- .seg{display:flex}
- .seg button{flex:1;padding:8px 4px}
+ .eixo{flex-wrap:wrap;row-gap:6px}
+ .eixo select{flex:1 1 calc(100% - 30px)}
+ .eixo .modo,.eixo .seg{margin-left:26px}
+ .eixo .tira{margin-left:auto}
+ .plinha{flex-direction:column;align-items:stretch}
+ .plinha .seg{display:flex}
+ .plinha .seg button{flex:1;padding:8px 4px}
  .acoes button{flex:1}
+ .tema{width:100%}
  th,td{padding:6px 7px}
 }
-</style></head><body><div class="wrap">
+</style>
+<script>try{var t=localStorage.getItem('tema');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head><body><div class="wrap">
+<div class="topo">
 <h1>Explorador de combinações — PRODES 2024 a 10 metros, por estado</h1>
+<div class="tema"><span class="gtit">Tema</span>
+  <span class="seg mini" role="group" aria-label="Tema da página">
+    <button type="button" data-tema="auto" title="segue o modo claro ou escuro do seu computador ou celular">Automático</button>
+    <button type="button" data-tema="light">Claro</button>
+    <button type="button" data-tema="dark">Escuro</button>
+  </span></div>
+</div>
 <p class="sub">À esquerda você <b>filtra</b> o que entra na conta; acima do gráfico você
 <b>separa</b> o que entrou. Cada filtro tem três estados: um clique para <b>precisa ter</b> (+),
 dois para <b>não pode ter</b> (−), três para voltar a indiferente. Dentro de um mesmo grupo os
@@ -139,7 +168,8 @@ vez, ao lado dos seis bits de esfera e grupo.</p></details>
   <div id="painelFiltros" class="painelFiltros">
   <div class="rotulo">Filtrar <span id="iFiltrar"></span></div>
   <div id="filtros"></div>
-  <div class="cx"><h3>Uso do solo</h3><div id="fclasses"></div></div>
+  <div class="cx"><div class="cabUso"><h3>Uso do solo <span id="iUso"></span></h3><span id="nivelUsoF"></span></div>
+    <div id="fclasses"></div></div>
   <div class="cx"><button id="limpar">Limpar todos os filtros</button></div>
   </div>
 </aside>
@@ -152,24 +182,30 @@ vez, ao lado dos seis bits de esfera e grupo.</p></details>
     <div class="k" id="kNacBox" style="display:none"><b id="kNac">—</b><span id="kNacL">do Brasil</span></div>
     <div class="k"><b id="kComb">—</b><span>combinações distintas</span></div>
   </div>
-  <div class="ctrl separar">
-    <span class="tit">Separar por<span id="iSeparar"></span></span>
+  <section class="painel" aria-label="Como mostrar o resultado">
+    <div class="gtit">Separar por<span id="iSeparar"></span></div>
     <div id="eixos"></div>
-    <button id="addEixo" title="da terceira em diante o gráfico muda para Sankey, que é o único que desenha várias colunas">+ comparação</button>
-  </div>
-  <div class="ctrl barra">
+    <button id="addEixo" class="add" title="da terceira em diante o gráfico muda para Sankey, que é o único que desenha várias colunas">+ comparação</button>
+    <div class="plinha">
+    <div class="pgrupo">
+    <div class="gtit">Gráfico</div>
     <div class="seg" role="group" aria-label="Tipo de gráfico">
       <button id="vTree" aria-pressed="true">Treemap</button>
       <button id="vSun" aria-pressed="false">Sunburst</button>
       <button id="vAnel" aria-pressed="false">Pizza + anel</button>
       <button id="vSank" aria-pressed="false">Sankey</button>
     </div>
+    </div>
+    <div class="pgrupo">
+    <div class="gtit">Exportar</div>
     <div class="acoes">
       <button id="baixar" title="todas as combinações, uma por linha">Baixar CSV</button>
       <button id="baixarPNG" title="salva o gráfico como está, em PNG">Baixar PNG</button>
       <button id="link" title="copia um endereço que reabre exatamente esta tela">Copiar link</button>
     </div>
-  </div>
+    </div>
+    </div>
+  </section>
   <div id="aviso" class="aviso"></div>
   <div id="gDica" class="gdica">↔ deslize o gráfico para ver todas as colunas</div>
   <div id="gWrap" class="grafico"><svg id="g" viewBox="0 0 900 560" role="img" aria-label="gráfico da combinação selecionada"></svg></div>
@@ -183,6 +219,27 @@ let universo='mestre', vis='tree', TOT_DES=null;
 let ufSel=0;   // 0 = Brasil inteiro; 1..27 = código da UF; 99 = sem UF
 const estado={};   // bit -> 0 indiferente, 1 precisa, 2 nao pode
 const classesSel=new Set();
+// Uso do solo em dois níveis: as classes do MapBiomas como vêm no dado, ou os
+// grupos definidos pelo time. A coleção de 10 m não separa as culturas: a
+// agricultura vem só como Lavoura Temporária (19) e Lavoura Perene (36), que
+// entram nos grupos ao lado dos códigos de cultura da legenda da coleção 11.
+// Código fora da tabela (Fora do MapBiomas) fica com o próprio nome.
+let nivelUso='agr';
+const GRUPOS_USO=[
+  ['Floresta','#1f8d49',[3,4,5,6,7,49]],
+  ['Vegetação herbácea','#d6bc74',[11,12,29,32,50,77,84]],
+  ['Pastagem','#edde8e',[15]],
+  ['Agricultura anual','#c27ba0',[19,20,39,40,41,62]],
+  ['Agricultura perene','#d082de',[35,36,46,47,48]],
+  ['Silvicultura','#7a5900',[9]],
+  ['Mosaico de usos agro','#ffefc3',[21]],
+  ['Outros','#8a9396',[23,24,25,30,31,33,75,91]],
+];
+const GRUPO_DO_USO={};
+GRUPOS_USO.forEach(([g,,cs])=>cs.forEach(c=>GRUPO_DO_USO[c]=g));
+let usosPresentes=new Set();
+const nomeClasse=c=>(D.classes[c]||['Classe '+c])[0];
+const nomeUso=c=>nivelUso==='agr'?(GRUPO_DO_USO[c]||nomeClasse(c)):nomeClasse(c);
 const fmt=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:0});
 const tip=document.getElementById('tip');
 const PAL=['#175345','#2B6A8F','#B36E38','#7E5A9B','#2E7D5B','#C0512F','#C9A227','#5C8374',
@@ -220,17 +277,73 @@ function montaClasses(){
   const fc=document.getElementById('fclasses'); fc.innerHTML='';
   const usadas=new Set();
   for(const r of D[universo]) if(passaUF(r[1])) usadas.add(r[0]&127);
+  usosPresentes=usadas;
   for(const c of [...classesSel]) if(!usadas.has(c)) classesSel.delete(c);
-  [...usadas].sort((a,b)=>a-b).forEach(cod=>{
-    const nome=(D.classes[cod]||['Classe '+cod])[0];
+  // O filtro guarda sempre códigos: o chip de grupo marca ou desmarca todos os
+  // códigos dele. Assim trocar de nível nunca muda a conta, só o desenho.
+  const itens=[], cor=c=>(D.classes[c]||[0,'#999'])[1];
+  if(nivelUso==='agr'){
+    const vistos=new Set();
+    for(const [g,cg,cs] of GRUPOS_USO){
+      const pres=cs.filter(c=>usadas.has(c)); pres.forEach(c=>vistos.add(c));
+      if(pres.length) itens.push({nome:g,cods:pres,cor:cg});
+    }
+    [...usadas].filter(c=>!vistos.has(c)).sort((a,b)=>a-b)
+      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c],cor:cor(c)}));
+  } else [...usadas].sort((a,b)=>a-b)
+      .forEach(c=>itens.push({nome:nomeClasse(c),cods:[c],cor:cor(c)}));
+  for(const it of itens){
     const s=document.createElement('span'); s.className='chip';
-    const on0=classesSel.has(cod); s.dataset.e=on0?1:0;
-    s.innerHTML=`<span class="m">${on0?'+':'·'}</span>${nome}`;
-    s.onclick=()=>{const on=s.dataset.e==='1'; s.dataset.e=on?0:1;
-      s.querySelector('.m').textContent=on?'·':'+';
-      on?classesSel.delete(cod):classesSel.add(cod); agenda();};
+    if(it.cods.length>1) s.title=it.cods.map(nomeClasse).join(', ');
+    s.innerHTML=`<span class="m"></span><span class="cor" style="background:${it.cor}"></span>${it.nome}`;
+    const pinta=()=>{
+      const n=it.cods.filter(c=>classesSel.has(c)).length;
+      const e=!n?0:(n===it.cods.length?1:3); s.dataset.e=e;
+      s.querySelector('.m').textContent=e===0?'·':(e===1?'+':'±');
+    };
+    pinta();
+    s.onclick=()=>{
+      const todos=it.cods.every(c=>classesSel.has(c));
+      it.cods.forEach(c=>todos?classesSel.delete(c):classesSel.add(c));
+      pinta(); agenda();
+    };
     fc.appendChild(s);
-  });
+  }
+}
+function seletorNivelUso(){
+  const g=document.createElement('span'); g.className='seg mini';
+  g.setAttribute('role','group'); g.setAttribute('aria-label','nível do uso do solo');
+  for(const [k,t,dica] of [['agr','Agrupado','os 8 grupos definidos pelo time'],
+                           ['det','Detalhado','as classes do MapBiomas como vêm no dado']]){
+    const b=document.createElement('button'); b.type='button'; b.textContent=t;
+    b.title=dica; b.dataset.nivel=k; b.setAttribute('aria-pressed',nivelUso===k);
+    b.onclick=()=>mudaNivelUso(k);
+    g.appendChild(b);
+  }
+  return g;
+}
+function marcaNivelUso(){
+  document.querySelectorAll('[data-nivel]').forEach(b=>
+    b.setAttribute('aria-pressed',b.dataset.nivel===nivelUso));
+}
+function mudaNivelUso(k){
+  if(nivelUso===k) return;
+  nivelUso=k; marcaNivelUso(); montaClasses(); agenda();
+}
+let explicaUso='';
+function textoUso(){
+  // Montado do próprio dado: só entram as classes que existem na grade de 10 m.
+  if(explicaUso) return explicaUso;
+  const tem=new Set(D.mestre.map(r=>r[0]&127));
+  const linhas=GRUPOS_USO.map(([g,,cs])=>`<b>${g}</b>: `+
+    cs.filter(c=>tem.has(c)).map(nomeClasse).join(', '));
+  const fora=[...tem].filter(c=>!GRUPO_DO_USO[c]).map(nomeClasse);
+  explicaUso='<b>Agrupado</b> junta as classes do MapBiomas nos grupos definidos pelo time:<br>'+
+    linhas.join('<br>')+
+    (fora.length?`<br>${fora.join(', ')} fica à parte, com o próprio nome.`:'')+
+    '<br><br><b>Detalhado</b> mostra cada classe do MapBiomas. Trocar de nível não muda '+
+    'a conta: os hectares de um grupo são a soma exata das suas classes.';
+  return explicaUso;
 }
 let agendado=false;
 function agenda(){
@@ -316,8 +429,17 @@ function montaEixos(){
     const w=document.createElement('span'); w.className='eixo';
     const s=document.createElement('select'); opcoesDim(s,e.d);
     s.setAttribute('aria-label',`comparação ${i+1}`);
-    s.onchange=()=>{eixos[i].d=s.value; agenda();};
+    s.onchange=()=>{eixos[i].d=s.value; montaEixos(); agenda();};
+    const num=document.createElement('span'); num.className='num'; num.textContent=i+1;
+    w.appendChild(num);
     w.appendChild(s);
+    if(D.dimensoes[e.d].tipo==='classe'){
+      // Cada pixel tem uma classe só: os três modos de leitura dariam o mesmo
+      // resultado. O que importa aqui é o nível do uso do solo.
+      e.m='sep';
+      w.appendChild(seletorNivelUso());
+      w.appendChild(info(textoUso(),'Uso do solo: agrupado ou detalhado'));
+    } else {
     const m=document.createElement('button'); m.className='modo';
     const pinta=()=>{
       m.textContent = ROTMODO[e.m];
@@ -341,6 +463,7 @@ function montaEixos(){
       '<b>sobreposições juntas</b> — '+DICAMODO.agr+'<br><br>'+
       '<b>total por classe</b> — '+DICAMODO.som,
       'Como contar um pixel que está em mais de uma classe'));
+    }
     if(eixos.length>1){
       const b=document.createElement('button');
       b.textContent='×'; b.title='remover esta comparação'; b.className='tira';
@@ -395,9 +518,10 @@ function frase(area){
   }
   for(const x of nega) partes.push(`<span class="ou">sem</span> <b>${x}</b>`);
   if(classesSel.size){
-    const ns=[...classesSel].map(c=>(D.classes[c]||['Classe '+c])[0]);
-    partes.push(ns.length===1?`<b>${ns[0]}</b>`
-      : `<b>${ns[0]}</b>`+ns.slice(1).map(x=>` <span class="ou">ou</span> <b>${x}</b>`).join(''));
+    // "Floresta" também é categoria de UC: o prefixo evita "Floresta e Floresta".
+    const ns=nomesFiltroUso();
+    partes.push('<span class="ou">uso do solo</span> '+(ns.length===1?`<b>${ns[0]}</b>`
+      : `<b>${ns[0]}</b>`+ns.slice(1).map(x=>` <span class="ou">ou</span> <b>${x}</b>`).join('')));
   }
   const uf = (typeof ufSel!=='undefined' && ufSel)
     ? ` em <b>${ufSel===99?'área sem UF':D.ufs[ufSel-1]}</b>` : '';
@@ -406,7 +530,8 @@ function frase(area){
   if(partes.length) t += ', filtrado por ' + partes.join(' <span class="ou">e</span> ');
   t += `: <b>${fmt(area)} ha</b>.`;
   t += ' Separado por ' + eixos.map(e=>
-        `<b>${D.dimensoes[e.d].rotulo}</b> <span class="ou">(${ROTMODO[e.m]})</span>`
+        `<b>${D.dimensoes[e.d].rotulo}</b> <span class="ou">(${D.dimensoes[e.d].tipo==='classe'
+          ?(nivelUso==='agr'?'agrupado':'detalhado'):ROTMODO[e.m]})</span>`
       ).join(' › ');
   const alg=eixos.some(e=>e.m==='som');
   t += alg
@@ -425,6 +550,20 @@ function frase(area){
   });
 }
 
+function nomesFiltroUso(){
+  // No agrupado, grupo marcado inteiro aparece pelo nome do grupo; marcação
+  // parcial (feita no detalhado) lista as classes, para a frase não mentir.
+  if(nivelUso!=='agr') return [...classesSel].map(nomeClasse);
+  const out=[], ditos=new Set();
+  for(const [g,,cs] of GRUPOS_USO){
+    const pres=cs.filter(c=>usosPresentes.has(c)), marc=pres.filter(c=>classesSel.has(c));
+    if(!marc.length) continue;
+    if(marc.length===pres.length) out.push(g); else marc.forEach(c=>out.push(nomeClasse(c)));
+    marc.forEach(c=>ditos.add(c));
+  }
+  [...classesSel].filter(c=>!ditos.has(c)).forEach(c=>out.push(nomeClasse(c)));
+  return out;
+}
 function rotulosDim(dim,v,u){
   // No modo inclusivo um pixel entra em TODAS as classes a que pertence:
   // "Grande" passa a somar também "Pequena + Grande". A soma excede o total,
@@ -453,7 +592,7 @@ function rotuloAgr(dimn,v,u){
 }
 function rotuloDim(dim,v,u){
   const d=D.dimensoes[dim];
-  if(d.tipo==='classe'){const c=v&127; return (D.classes[c]||['Classe '+c])[0];}
+  if(d.tipo==='classe') return nomeUso(v&127);
   const ac=d.bits.filter(([b])=>temBit(v,u,b));
   if(!ac.length) return d.vazio||'Nenhum';
   // "Sobreposto (2)" nao dizia QUAIS. O rotulo agora nomeia a combinacao.
@@ -465,15 +604,17 @@ function leitor(dimn){
   // O rótulo depende só dos poucos bits do eixo, e há bem menos combinações
   // desses bits que linhas. Montar o texto uma vez por combinação, e não uma
   // vez por linha, tira a maior parte do trabalho e do lixo de memória.
-  if(leitores[dimn]) return leitores[dimn];
-  const d=D.dimensoes[dimn]; let mv=0, mu=0;
+  const d=D.dimensoes[dimn];
+  const chave=d.tipo==='classe'?dimn+'|'+nivelUso:dimn;
+  if(leitores[chave]) return leitores[chave];
+  let mv=0, mu=0;
   if(d.tipo==='classe') mv=127;
   else for(const [b] of d.bits){ const [x,y]=bitMask(b); mv|=x; mu|=y; }
   const M=2**(32-Math.clz32(mv));
   const memo=f=>{ const c=new Map(); return (v,u)=>{
     const k=((v&mv)>>>0)+((u&mu)>>>0)*M; let r=c.get(k);
     if(r===undefined){ r=f(v,u); c.set(k,r); } return r; }; };
-  return leitores[dimn]={
+  return leitores[chave]={
     um:{sep:memo((v,u)=>rotuloDim(dimn,v,u)), agr:memo((v,u)=>rotuloAgr(dimn,v,u))},
     lista:{sep:memo((v,u)=>[rotuloDim(dimn,v,u)]), agr:memo((v,u)=>[rotuloAgr(dimn,v,u)]),
            som:memo((v,u)=>rotulosDim(dimn,v,u))},
@@ -1162,6 +1303,7 @@ function estadoParaURL(){
   if(menos.length) p.set('n',menos.join(','));
   if(classesSel.size) p.set('c',[...classesSel].join(','));
   p.set('e',eixos.map(x=>x.d+':'+x.m).join(','));
+  p.set('us',nivelUso);
   if(vis!=='tree') p.set('g',vis);
   if(calcSel.size) p.set('k',[...calcSel].join(','));
   return location.origin+location.pathname+'?'+p.toString();
@@ -1169,6 +1311,7 @@ function estadoParaURL(){
 function aplicaURL(){
   const p=new URLSearchParams(location.search);
   if(![...p.keys()].length) return false;
+  nivelUso = p.get('us')==='agr' ? 'agr' : 'det';
   if(p.get('u')==='recorte'||p.get('u')==='mestre') universo=p.get('u');
   if(p.get('uf')) ufSel=+p.get('uf');
   for(const [chave,val] of [['m',1],['n',2]])
@@ -1484,6 +1627,26 @@ function baixarPNG(){
 }
 document.getElementById('baixarPNG').onclick=baixarPNG;
 
+// ---- tema ---------------------------------------------------------------
+// Automático segue o modo claro/escuro do sistema, que era a única opção: quem
+// usa o computador no escuro via a página sempre escura, sem como trocar. A
+// escolha fica guardada neste navegador.
+function aplicaTema(t){
+  const fixo=t==='light'||t==='dark';
+  if(fixo) document.documentElement.setAttribute('data-theme',t);
+  else document.documentElement.removeAttribute('data-theme');
+  document.querySelectorAll('[data-tema]').forEach(b=>
+    b.setAttribute('aria-pressed',b.dataset.tema===(fixo?t:'auto')));
+}
+(function(){
+  let t='auto'; try{ t=localStorage.getItem('tema')||'auto'; }catch(e){}
+  aplicaTema(t);
+  document.querySelectorAll('[data-tema]').forEach(b=>b.onclick=()=>{
+    aplicaTema(b.dataset.tema);
+    try{ localStorage.setItem('tema',b.dataset.tema); }catch(e){}
+  });
+})();
+
 (function(){
   const põe=(id,t,tit)=>{const e=document.getElementById(id); if(e) e.appendChild(info(t,tit));};
   põe('iUni','<b>Brasil inteiro</b> traz todos os pixels do país, desmatados ou não — '+
@@ -1496,13 +1659,17 @@ document.getElementById('baixarPNG').onclick=baixarPNG;
     'com <b>ou</b>; entre grupos, com <b>e</b> — assim "dentro de alguma UC" é um clique '+
     'em cada UC, não a interseção das seis.','Filtrar');
   põe('iSeparar','Define como o que entrou é QUEBRADO no gráfico. Cada comparação tem o '+
-    'próprio botão de leitura ao lado. Da terceira em diante só o Sankey desenha.',
+    'próprio botão de leitura ao lado; a de uso do solo tem, no lugar dele, a escolha entre '+
+    'agrupado e detalhado. Da terceira em diante só o Sankey desenha.',
     'Separar por');
+  const iu=document.getElementById('iUso');
+  iu.appendChild(info(EXPLICA['Uso do solo']+'<br><br>'+textoUso(),'Uso do solo'));
+  document.getElementById('nivelUsoF').appendChild(seletorNivelUso());
 })();
 aplicaURL();
 // Tudo o que o link trouxe (estado, gráfico, classes) é pintado antes da única
 // conta da abertura.
-montaFiltros(); marcaU(); marcaV(); montaUF(); sincLeitura(); sincUF(); calcula();
+montaFiltros(); marcaU(); marcaV(); marcaNivelUso(); montaUF(); sincLeitura(); sincUF(); calcula();
 
 // Autoconferencia: abra o arquivo com ?validar no fim do endereco.
 // Refaz em JavaScript as combinacoes calculadas em pandas e compara.
