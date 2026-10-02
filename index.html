@@ -863,42 +863,62 @@ function liga(){
     el.addEventListener('mouseleave',()=>tip.style.opacity=0);
   });
 }
-let expandido=false;
+// Selecao por clique na tabela. Pedida pelo time: a pergunta real quase nunca
+// e uma linha, e sim um conjunto delas -- "quanto da e so aderente", "quanto e
+// misto". Antes isso so dava para fazer em planilha. Por isso TODAS as linhas
+// ficam na tela: gaveta e selecao nao convivem, o que esta escondido nao da
+// para somar.
+const selLinhas=new Set();
+let verIrrelevantes=false;
 function tabela(arr,area){
-  // A pagina mostra TUDO. Havia duas truncagens somadas -- a cauda virava uma
-  // linha agrupada e, depois, so as 14 primeiras linhas eram desenhadas, com um
-  // texto mandando baixar o CSV. Mandar o leitor para a planilha para ver o
-  // proprio dado da tela e inaceitavel: o CSV e um extra, nao a fonte.
-  // Agora e uma gaveta: fechada mostra as 14 maiores, aberta mostra todas, sem
-  // agrupamento nenhum.
   const t=document.getElementById('tab');
   if(!arr.length){t.innerHTML='';return;}
   const U=window.__ult||{};
   const todas=(U.bruto&&U.bruto.length)?U.bruto:arr;   // sem cauda agrupada
-  const linhas=expandido?todas:arr.slice(0,14);
-  const ocultas=todas.length-linhas.length;
+  const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+  const marcada=it=>selLinhas.has(it.nome);
+  // O corte e o que a propria tela mostra: se a linha exibiria 0,00%, ela nao
+  // informa nada na lista principal. Nao e corte arbitrario de "top N" -- a
+  // lista visivel passa a ter, literalmente, so o que esta acima de 0,00.
+  // Elas continuam no CSV, na soma e selecionaveis dentro da gaveta.
+  const zerada=it=>(100*it.valor/area)<0.005;
+  const sel=todas.filter(marcada);
+  const naoSel=todas.filter(x=>!marcada(x));
+  const resto=naoSel.filter(x=>!zerada(x));
+  const miudas=naoSel.filter(zerada);
+  const somaSel=sel.reduce((a,x)=>a+x.valor,0);
+  const somaMiudas=miudas.reduce((a,x)=>a+x.valor,0);
+
+  const linha=(it,on)=>`<tr data-nome="${esc(it.nome)}" style="cursor:pointer`
+    +(on?';background:rgba(123,176,122,.16)':'')+`">`
+    +`<td>${on?'<span style="color:var(--verde)">✓</span> ':''}${it.nome}</td>`
+    +`<td class="n">${fmt(it.valor)}</td>`
+    +`<td class="n">${(100*it.valor/area).toFixed(2)}</td></tr>`;
 
   let h='<tr><th>Categoria</th><th style="text-align:right">Área (ha)</th>'
        +'<th style="text-align:right">% da seleção</th></tr>';
-  for(const it of linhas){
-    // A propria linha "Outras N combinacoes" abre a gaveta: sem isso o leitor
-    // clica nela, nada acontece, e a gaveta parece quebrada.
-    const ag=!!it.agrupado;
-    h+=`<tr${ag?' data-exp="1" style="cursor:pointer"':''}>`
-      +`<td>${it.nome}${ag?' <span style="color:var(--verde)">▸ abrir</span>':''}</td>`
-      +`<td class="n">${fmt(it.valor)}</td>`
-      +`<td class="n">${(100*it.valor/area).toFixed(2)}</td></tr>`;
+  for(const it of sel) h+=linha(it,true);
+  if(sel.length){
+    h+=`<tr data-limpar="1" style="cursor:pointer;background:rgba(123,176,122,.28);`
+      +`font-weight:600"><td>Σ ${sel.length} linha${sel.length>1?'s':''} `
+      +`selecionada${sel.length>1?'s':''} <span style="font-weight:400;`
+      +`color:var(--suave)">— clique aqui para limpar</span></td>`
+      +`<td class="n">${fmt(somaSel)}</td>`
+      +`<td class="n">${(100*somaSel/area).toFixed(2)}</td></tr>`;
+    h+=`<tr><td colspan="3" style="padding:2px 0"></td></tr>`;
   }
+  for(const it of resto) h+=linha(it,false);
 
-  // Sem a condicao de tamanho: com ela, um total de 14 ou menos deixaria o
-  // leitor preso na gaveta aberta, sem botao de voltar.
-  if(expandido)
-    h+=`<tr data-exp="0" style="cursor:pointer"><td colspan="3" `
-      +`style="color:var(--verde);padding-top:9px">▾ recolher — mostrar só as 14 maiores</td></tr>`;
-  else if(ocultas>0)
-    h+=`<tr data-exp="1" style="cursor:pointer"><td colspan="3" `
-      +`style="color:var(--verde);padding-top:9px">▸ mostrar todas as `
-      +`${todas.length} combinações</td></tr>`;
+  if(miudas.length){
+    h+=`<tr data-miudas="1" style="cursor:pointer"><td colspan="3" `
+      +`style="color:var(--verde);padding-top:9px">`
+      +(verIrrelevantes?'▾ esconder':'▸ mostrar')+` ${miudas.length} combinações `
+      +`abaixo de 0,01% <span style="color:var(--suave)">— somam `
+      +`${fmt(somaMiudas)} ha (${(100*somaMiudas/area).toFixed(3)}%)`
+      +`</span></td></tr>`;
+    if(verIrrelevantes) for(const it of miudas) h+=linha(it,false);
+  }
 
   // A area que seria contada duas vezes por quem somasse filtros separados.
   if(U.modo==='sep' && U.multi>0){
@@ -908,12 +928,19 @@ function tabela(arr,area){
       +`<b>${fmt(U.multi)} ha (${pc}%)</b> da seleção estão em linhas que combinam `
       +`mais de uma categoria deste eixo. Aqui cada pixel aparece <b>uma vez só</b>. `
       +`Se você somar filtros separados — um para cada categoria — essa área `
-      +`é contada <b>duas vezes</b>.</td></tr>`;
+      +`é contada <b>duas vezes</b>. Clique nas linhas para somá-las do seu jeito.`
+      +`</td></tr>`;
   }
   t.innerHTML=h;
-  t.querySelectorAll('tr[data-exp]').forEach(tr=>{
-    tr.onclick=()=>{expandido=tr.dataset.exp==='1'; tabela(arr,area);};
+  t.querySelectorAll('tr[data-nome]').forEach(tr=>{
+    tr.onclick=()=>{const n=tr.dataset.nome;
+      selLinhas.has(n)?selLinhas.delete(n):selLinhas.add(n);
+      tabela(arr,area);};
   });
+  const lp=t.querySelector('tr[data-limpar]');
+  if(lp) lp.onclick=()=>{selLinhas.clear(); tabela(arr,area);};
+  const mi=t.querySelector('tr[data-miudas]');
+  if(mi) mi.onclick=()=>{verIrrelevantes=!verIrrelevantes; tabela(arr,area);};
 }
 
 function selects(){
