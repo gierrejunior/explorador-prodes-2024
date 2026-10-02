@@ -87,6 +87,9 @@ button[aria-pressed="true"]{background:var(--verde);color:var(--fundo);border-co
 .gnota{font-size:12.5px;line-height:1.5;color:var(--suave);margin:0 0 8px}
 .gnota:empty{display:none}
 .gnota b{color:var(--tinta);font-weight:600}
+/* .seg define display e venceria o hidden do navegador: o seletor de escala das
+   barras aparecia em todos os gráficos. */
+[hidden]{display:none!important}
 .opBarra{margin-top:6px}
 .calcSub{color:var(--suave);font-size:12.5px;margin:0 0 10px}
 .calcEscolha{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
