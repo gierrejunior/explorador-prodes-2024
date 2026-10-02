@@ -898,15 +898,19 @@ function tabela(arr,area){
 
   let h='<tr><th>Categoria</th><th style="text-align:right">Área (ha)</th>'
        +'<th style="text-align:right">% da seleção</th></tr>';
+  if(sel.length) h+=`<tr><td colspan="3" style="padding:0;height:6px;border:0"></td></tr>`;
   for(const it of sel) h+=linha(it,true);
   if(sel.length){
-    h+=`<tr data-limpar="1" style="cursor:pointer;background:rgba(123,176,122,.28);`
-      +`font-weight:600"><td>Σ ${sel.length} linha${sel.length>1?'s':''} `
+    const cel='padding:11px 10px;background:rgba(123,176,122,.28);'
+             +'border-top:2px solid var(--verde);'
+             +'border-bottom:2px solid var(--verde);font-weight:600';
+    h+=`<tr data-limpar="1" style="cursor:pointer">`
+      +`<td style="${cel}">Σ ${sel.length} linha${sel.length>1?'s':''} `
       +`selecionada${sel.length>1?'s':''} <span style="font-weight:400;`
       +`color:var(--suave)">— clique aqui para limpar</span></td>`
-      +`<td class="n">${fmt(somaSel)}</td>`
-      +`<td class="n">${(100*somaSel/area).toFixed(2)}</td></tr>`;
-    h+=`<tr><td colspan="3" style="padding:2px 0"></td></tr>`;
+      +`<td class="n" style="${cel}">${fmt(somaSel)}</td>`
+      +`<td class="n" style="${cel}">${(100*somaSel/area).toFixed(2)}</td></tr>`;
+    h+=`<tr><td colspan="3" style="padding:0;height:16px;border:0"></td></tr>`;
   }
   for(const it of resto) h+=linha(it,false);
 
