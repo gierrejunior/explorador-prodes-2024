@@ -865,28 +865,42 @@ function liga(){
 }
 let expandido=false;
 function tabela(arr,area){
+  // A pagina mostra TUDO. Havia duas truncagens somadas -- a cauda virava uma
+  // linha agrupada e, depois, so as 14 primeiras linhas eram desenhadas, com um
+  // texto mandando baixar o CSV. Mandar o leitor para a planilha para ver o
+  // proprio dado da tela e inaceitavel: o CSV e um extra, nao a fonte.
+  // Agora e uma gaveta: fechada mostra as 14 maiores, aberta mostra todas, sem
+  // agrupamento nenhum.
   const t=document.getElementById('tab');
   if(!arr.length){t.innerHTML='';return;}
   const U=window.__ult||{};
-  // Expandir mostra as linhas da cauda em vez do grupo: era nela que as
-  // combinacoes mistas se escondiam, e quem somava a tela errava por isso.
-  let linhas=arr;
-  if(expandido && U.bruto && U.bruto.length) linhas=U.bruto;
-  let h='<tr><th>Categoria</th><th style="text-align:right">Área (ha)</th><th style="text-align:right">% da seleção</th></tr>';
-  for(const it of linhas.slice(0,expandido?400:14)){
-    const clicavel=!!it.agrupado;
-    h+=`<tr${clicavel?' style="cursor:pointer" data-exp="1" title="clique para abrir as combinações"':''}>`
-      +`<td>${it.nome}${clicavel?' <span style="color:var(--verde)">▸ abrir</span>':''}</td>`
+  const todas=(U.bruto&&U.bruto.length)?U.bruto:arr;   // sem cauda agrupada
+  const linhas=expandido?todas:arr.slice(0,14);
+  const ocultas=todas.length-linhas.length;
+
+  let h='<tr><th>Categoria</th><th style="text-align:right">Área (ha)</th>'
+       +'<th style="text-align:right">% da seleção</th></tr>';
+  for(const it of linhas){
+    // A propria linha "Outras N combinacoes" abre a gaveta: sem isso o leitor
+    // clica nela, nada acontece, e a gaveta parece quebrada.
+    const ag=!!it.agrupado;
+    h+=`<tr${ag?' data-exp="1" style="cursor:pointer"':''}>`
+      +`<td>${it.nome}${ag?' <span style="color:var(--verde)">▸ abrir</span>':''}</td>`
       +`<td class="n">${fmt(it.valor)}</td>`
       +`<td class="n">${(100*it.valor/area).toFixed(2)}</td></tr>`;
   }
-  if(expandido)
-    h+=`<tr data-exp="0" style="cursor:pointer;color:var(--verde)"><td colspan="3">▾ recolher</td></tr>`;
-  else if(linhas.length>14)
-    h+=`<tr><td colspan="3" style="color:var(--suave)">e mais ${linhas.length-14} categorias — o CSV traz todas</td></tr>`;
 
-  // O aviso que faltava: esta e a area que apareceria DUAS VEZES se alguem
-  // somasse filtros separados em vez de ler as combinacoes.
+  // Sem a condicao de tamanho: com ela, um total de 14 ou menos deixaria o
+  // leitor preso na gaveta aberta, sem botao de voltar.
+  if(expandido)
+    h+=`<tr data-exp="0" style="cursor:pointer"><td colspan="3" `
+      +`style="color:var(--verde);padding-top:9px">▾ recolher — mostrar só as 14 maiores</td></tr>`;
+  else if(ocultas>0)
+    h+=`<tr data-exp="1" style="cursor:pointer"><td colspan="3" `
+      +`style="color:var(--verde);padding-top:9px">▸ mostrar todas as `
+      +`${todas.length} combinações</td></tr>`;
+
+  // A area que seria contada duas vezes por quem somasse filtros separados.
   if(U.modo==='sep' && U.multi>0){
     const pc=(100*U.multi/area).toFixed(2);
     h+=`<tr><td colspan="3" style="color:var(--suave);font-size:12.5px;`
@@ -901,6 +915,7 @@ function tabela(arr,area){
     tr.onclick=()=>{expandido=tr.dataset.exp==='1'; tabela(arr,area);};
   });
 }
+
 function selects(){
   // No universo do recorte, "Desmatamento 2024" nao separa nada: todo pixel ja
   // tem o bit. Some da lista em vez de virar um eixo de um valor so.
