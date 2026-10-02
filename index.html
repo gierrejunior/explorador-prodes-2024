@@ -143,48 +143,80 @@ function montaFiltros(){
       const s=document.createElement('span'); s.className='chip'; s.dataset.bit=b; s.dataset.e=0;
       s.innerHTML=`<span class="m">·</span>${rot}`;
       s.onclick=()=>{const e=((+s.dataset.e)+1)%3; s.dataset.e=e; estado[b]=e;
-        s.querySelector('.m').textContent=e===0?'·':(e===1?'+':'−'); calcula();};
+        s.querySelector('.m').textContent=e===0?'·':(e===1?'+':'−'); agenda();};
       d.appendChild(s);
     }
     const h=d.querySelector('h3');
     if(EXPLICA[g]) h.appendChild(info(EXPLICA[g], g));
     c.appendChild(d);
   }
-  const fc=document.getElementById('fclasses');
-  const usadas=new Set(D[universo].filter(([v,u])=>passaUF(u)).map(([v])=>v&127));
+  sincChips();
+}
+function sincChips(){
+  // Só os chips de filtro: os da calculadora também têm a classe .chip, mas não
+  // têm o marcador .m, e mexer neles quebrava o "Limpar" e o ?validar.
+  document.querySelectorAll('#filtros .chip').forEach(c=>{
+    const e=estado[c.dataset.bit]||0; c.dataset.e=e;
+    c.querySelector('.m').textContent=e===0?'·':(e===1?'+':'−');});
+}
+function montaClasses(){
+  const fc=document.getElementById('fclasses'); fc.innerHTML='';
+  const usadas=new Set();
+  for(const r of D[universo]) if(passaUF(r[1])) usadas.add(r[0]&127);
+  for(const c of [...classesSel]) if(!usadas.has(c)) classesSel.delete(c);
   [...usadas].sort((a,b)=>a-b).forEach(cod=>{
     const nome=(D.classes[cod]||['Classe '+cod])[0];
-    const s=document.createElement('span'); s.className='chip'; s.dataset.e=0;
-    s.innerHTML=`<span class="m">·</span>${nome}`;
+    const s=document.createElement('span'); s.className='chip';
+    const on0=classesSel.has(cod); s.dataset.e=on0?1:0;
+    s.innerHTML=`<span class="m">${on0?'+':'·'}</span>${nome}`;
     s.onclick=()=>{const on=s.dataset.e==='1'; s.dataset.e=on?0:1;
       s.querySelector('.m').textContent=on?'·':'+';
-      on?classesSel.delete(cod):classesSel.add(cod); calcula();};
+      on?classesSel.delete(cod):classesSel.add(cod); agenda();};
     fc.appendChild(s);
   });
+}
+let agendado=false;
+function agenda(){
+  // Deixa o navegador pintar o chip antes da conta: chamada direto no clique,
+  // a conta segurava a tela e o clique parecia não ter pegado. Cliques em
+  // sequência viram uma conta só.
+  if(agendado) return; agendado=true;
+  requestAnimationFrame(()=>setTimeout(()=>{agendado=false; calcula();},0));
 }
 function temBit(v,u,b){
   // Bit >= 100 vive na BANDA 2: 110-121 sao as categorias de UC. A banda 2
   // tambem guarda a UF nos bits 0-4, por isso passaUF mascara com 31.
   return b>=100 ? ((u>>>(b-100))&1) : ((v>>>b)&1);
 }
-function passaUF(u){ const c=u&31; return !ufSel || c===ufSel; }
-function passa(v,u){
+function bitMask(b){
+  // A mesma regra de temBit, como máscara [banda 1, banda 2].
+  return b>=100 ? [0,1<<((b-100)&31)] : [1<<(b&31),0];
+}
+function passaUF(u){
+  const c=u&31;
+  if(ufSel===99) return c<1||c>27;   // "sem UF": comparar com 99 nunca casava
+  return !ufSel || c===ufSel;
+}
+function filtro(){
   // Dentro de um grupo os filtros somam com OU; entre grupos, com E. Antes era
   // tudo E, e pedir "dentro de alguma UC" exigia ligar as seis — devolvendo 0.
-  const porg={};
+  // Montado uma vez por conta, como máscaras: refazer isto a cada uma das 96
+  // mil linhas era o grosso do tempo de cada clique.
+  const porg={}; let nv=0, nu=0;
   for(const b in estado){
-    const e=estado[b]; if(e!==1) continue;
+    const e=estado[b]; if(e!==1&&e!==2) continue;
+    const [mv,mu]=bitMask(+b);
+    if(e===2){ nv|=mv; nu|=mu; continue; }
     const g=D.grupo_do_bit[b]||b;
-    (porg[g]=porg[g]||[]).push(+b);
+    const o=porg[g]||(porg[g]={v:0,u:0}); o.v|=mv; o.u|=mu;
   }
-  for(const g in porg){
-    let algum=false;
-    for(const b of porg[g]) if(temBit(v,u,b)){algum=true;break;}
-    if(!algum) return false;
-  }
-  for(const b in estado) if(estado[b]===2 && temBit(v,u,+b)) return false;
-  if(classesSel.size&&!classesSel.has(v&127)) return false;
-  return true;
+  const req=Object.values(porg);
+  const cls=classesSel.size?new Set(classesSel):null;
+  return (v,u)=>{
+    for(let i=0;i<req.length;i++) if(!(v&req[i].v)&&!(u&req[i].u)) return false;
+    if((v&nv)||(u&nu)) return false;
+    return !cls||cls.has(v&127);
+  };
 }
 
 // ---- eixos de comparação, em número livre --------------------------------
@@ -229,7 +261,7 @@ function montaEixos(){
       'border:1px solid var(--linha);border-radius:8px;padding:3px 4px;background:var(--fundo)';
     const s=document.createElement('select'); opcoesDim(s,e.d);
     s.style.border='none'; s.style.background='transparent';
-    s.onchange=()=>{eixos[i].d=s.value; calcula();};
+    s.onchange=()=>{eixos[i].d=s.value; agenda();};
     w.appendChild(s);
     const m=document.createElement('button');
     m.style.cssText='padding:3px 8px;font-size:11px;border-radius:6px';
@@ -247,7 +279,7 @@ function montaEixos(){
     m.onclick=()=>{
       let i2=(MODOS.indexOf(e.m)+1)%MODOS.length;
       if(vis==='sank' && MODOS[i2]==='som') i2=0;   // somado não existe no Sankey
-      e.m=MODOS[i2]; pinta(); calcula();
+      e.m=MODOS[i2]; pinta(); agenda();
     };
     w.appendChild(m);
     w.appendChild(info(
@@ -259,7 +291,7 @@ function montaEixos(){
       const b=document.createElement('button');
       b.textContent='×'; b.title='remover esta comparação';
       b.style.cssText='padding:3px 7px;line-height:1';
-      b.onclick=()=>{eixos.splice(i,1); montaEixos(); calcula();};
+      b.onclick=()=>{eixos.splice(i,1); montaEixos(); agenda();};
       w.appendChild(b);
     }
     c.appendChild(w);
@@ -270,19 +302,22 @@ function montaEixos(){
 }
 function sincLeitura(){
   // No Sankey toda comparação volta a separada, pela mesma razão geométrica.
-  if(vis==='sank') eixos.forEach(e=>{ if(e.m==='som') e.m='sep'; });
-  montaEixos(); calcula();
+  // Devolve se alguma mudou: só então os números precisam ser refeitos.
+  let mudou=false;
+  if(vis==='sank') eixos.forEach(e=>{ if(e.m==='som'){ e.m='sep'; mudou=true; } });
+  montaEixos();
+  return mudou;
 }
 document.getElementById('addEixo').onclick=()=>{
   if(eixos.length>=8) return;
   const usados=new Set(eixos.map(e=>e.d));
   const livre=Object.keys(D.dimensoes).find(k=>!usados.has(k)&&
               !(k==='prodes'&&universo==='recorte')) || eixos[eixos.length-1].d;
-  eixos.push({d:livre, inc:false});
+  eixos.push({d:livre, m:'sep'});
   // Só o Sankey desenha da terceira em diante. Recusar seria pior que levar
   // para onde a comparação aparece.
-  if(eixos.length>2 && vis!=='sank'){ vis='sank'; sincV(); }
-  montaEixos(); calcula();
+  if(eixos.length>2 && vis!=='sank'){ vis='sank'; marcaV(); }
+  sincLeitura(); agenda();
 };
 
 
@@ -367,87 +402,87 @@ function rotuloDim(dim,v,u){
   // A cauda longa e agrupada depois, em calcula(), para nao virar cem lascas.
   return ac.map(x=>x[1]).join(' + ');
 }
+const leitores={};
+function leitor(dimn){
+  // O rótulo depende só dos poucos bits do eixo, e há bem menos combinações
+  // desses bits que linhas. Montar o texto uma vez por combinação, e não uma
+  // vez por linha, tira a maior parte do trabalho e do lixo de memória.
+  if(leitores[dimn]) return leitores[dimn];
+  const d=D.dimensoes[dimn]; let mv=0, mu=0;
+  if(d.tipo==='classe') mv=127;
+  else for(const [b] of d.bits){ const [x,y]=bitMask(b); mv|=x; mu|=y; }
+  const M=2**(32-Math.clz32(mv));
+  const memo=f=>{ const c=new Map(); return (v,u)=>{
+    const k=((v&mv)>>>0)+((u&mu)>>>0)*M; let r=c.get(k);
+    if(r===undefined){ r=f(v,u); c.set(k,r); } return r; }; };
+  return leitores[dimn]={
+    um:{sep:memo((v,u)=>rotuloDim(dimn,v,u)), agr:memo((v,u)=>rotuloAgr(dimn,v,u))},
+    lista:{sep:memo((v,u)=>[rotuloDim(dimn,v,u)]), agr:memo((v,u)=>[rotuloAgr(dimn,v,u)]),
+           som:memo((v,u)=>rotulosDim(dimn,v,u))},
+    n:memo((v,u)=>nBitsDim(dimn,v,u)),
+    acesos:memo((v,u)=>d.tipo==='classe'?[]:d.bits.filter(([b])=>temBit(v,u,b)).map(x=>x[1]))};
+}
 function calcula(){
-  const T=D[universo]; let area=0,comb=0; const mapa=new Map();
+  const T=D[universo]; let area=0,comb=0,tot=0,nac=0; const mapa=new Map();
   const d1=dim(0), d2=eixos.length>1?dim(1):'—';
-  const d3=eixos.length>2?dim(2):'—';
   const m1=eixos[0].m, m2=eixos.length>1?eixos[1].m:'sep';
-  const rot1=(v,u)=>m1==='som'?rotulosDim(d1,v,u):[m1==='agr'?rotuloAgr(d1,v,u):rotuloDim(d1,v,u)];
-  const rot2=(v,u)=>m2==='som'?rotulosDim(d2,v,u):[m2==='agr'?rotuloAgr(d2,v,u):rotuloDim(d2,v,u)];
+  const ok=filtro(), L1=leitor(d1), rot1=L1.lista[m1], n1=L1.n, acesos1=L1.acesos;
+  const rot2=d2==='—'?null:leitor(d2).lista[m2];
   window.__eixos=eixos;
-  // O terceiro nivel so alimenta o Sankey. Nos outros desenhos as folhas SAO as
-  // combinacoes: medido, 3 eixos dao 4x mais folhas e MENOS area visivel, porque
-  // o excedente vira lasca. No Sankey as colunas seguem com poucos nos.
-  const fl23=new Map();
   let multi=0; const incl=new Map();
   const dd1=D.dimensoes[d1], bits1=(dd1&&dd1.tipo!=='classe')?dd1.bits:null;
-  for(const [v,u,a] of T){ if(!passaUF(u)||!passa(v,u)) continue; area+=a; comb++;
-    if(nBitsDim(d1,v,u)>1) multi+=a;
+  // Sankey de três colunas ou mais: entra na mesma passada, que antes era a
+  // segunda volta completa pelos dados. Cada rótulo vira um número dentro da
+  // coluna, e a fita é a dupla de números: juntar os dois textos a cada linha
+  // custava mais que todo o resto da conta.
+  const NS=eixos.length>2?eixos.length:0;
+  const ids=[], nomes=[], somaC=[], lig=[], rs=[], ks=new Array(NS);
+  for(let j=0;j<NS;j++){ ids.push(new Map()); nomes.push([]); somaC.push([]);
+    if(j<NS-1) lig.push(new Map());
+    rs.push(leitor(eixos[j].d).um[eixos[j].m==='agr'?'agr':'sep']); }
+  // Uma passada só: total do universo, total nacional do recorte e a quebra.
+  for(let i=0;i<T.length;i++){
+    const r=T[i], v=r[0], u=r[1], a=r[2];
+    const naUF=passaUF(u);
+    if(naUF) tot+=a;
+    if(!ok(v,u)) continue;
+    nac+=a;
+    if(!naUF) continue;
+    area+=a; comb++;
+    if(n1(v,u)>1) multi+=a;
     // inclusivo por categoria: o pixel entra em TODAS a que pertence. Somar
     // esta coluna excede o total de proposito -- e exatamente a dupla contagem
     // que a comparacao existe para tornar visivel.
-    if(bits1) for(const [b,rot] of bits1)
-      if(temBit(v,u,b)) incl.set(rot,(incl.get(rot)||0)+a);
-    const k1s=rot1(v,u);
-    const k2s=d2==='—'?[null]:rot2(v,u);
-    for(const k1 of k1s){
-      if(!mapa.has(k1)) mapa.set(k1,{total:0,filhos:new Map()});
-      const n=mapa.get(k1); n.total+=a;
-      for(const k2 of k2s){ if(k2===null) continue;
-        n.filhos.set(k2,(n.filhos.get(k2)||0)+a);
-        if(d3!=='—'&&m1!=='som'&&m2!=='som'){
-          const k3=eixos[2].m==='agr'?rotuloAgr(d3,v,u):rotuloDim(d3,v,u), ch=k2+'\u0000'+k3;
-          fl23.set(ch,(fl23.get(ch)||0)+a);}}
+    if(bits1) for(const rot of acesos1(v,u)) incl.set(rot,(incl.get(rot)||0)+a);
+    const k2s=rot2?rot2(v,u):null;
+    for(const k1 of rot1(v,u)){
+      let n=mapa.get(k1);
+      if(!n) mapa.set(k1,n={total:0,filhos:new Map()});
+      n.total+=a;
+      if(k2s) for(const k2 of k2s) n.filhos.set(k2,(n.filhos.get(k2)||0)+a);
     }
-  }
-  window.__fl23 = (d2!=='—'&&d3!=='—')?fl23:null;
-  if(eixos.length>2){
-    const cols=eixos.map(()=>new Map()), lig=[];
-    for(let i=0;i<eixos.length-1;i++) lig.push(new Map());
-    for(const reg of T){
-      const v=reg[0], u=(reg.length>2?reg[1]:0), a2=reg[reg.length-1];
-      if(reg.length>2 && !passaUF(u)) continue;
-      if(!passa(v,u)) continue;
-      const ks=eixos.map(e=>e.m==='agr'?rotuloAgr(e.d,v,u):rotuloDim(e.d,v,u));
-      ks.forEach((k,i)=>cols[i].set(k,(cols[i].get(k)||0)+a2));
-      for(let i=0;i<ks.length-1;i++){
-        const ch=ks[i]+'\u0000'+ks[i+1];
-        lig[i].set(ch,(lig[i].get(ch)||0)+a2);
+    if(NS){
+      for(let j=0;j<NS;j++){
+        const k=rs[j](v,u); let id=ids[j].get(k);
+        if(id===undefined){ id=nomes[j].length; ids[j].set(k,id); nomes[j].push(k); somaC[j].push(0); }
+        somaC[j][id]+=a; ks[j]=id;
+      }
+      for(let j=0;j<NS-1;j++){
+        const ch=ks[j]*65536+ks[j+1];
+        lig[j].set(ch,(lig[j].get(ch)||0)+a);
       }
     }
-    window.__sankeyN={cols,lig,rot:eixos.map(e=>D.dimensoes[e.d].rotulo)};
-  } else window.__sankeyN=null;
-  const tot=T.reduce((s,r)=>passaUF(r[1])?s+r[r.length-1]:s,0);
+  }
+  window.__sankeyN = NS ? {
+    cols:nomes.map((ns,j)=>new Map(ns.map((n,i)=>[n,somaC[j][i]]))),
+    lig:lig.map((m,j)=>new Map([...m].map(([ch,x])=>
+      [nomes[j][Math.floor(ch/65536)]+'\u0000'+nomes[j+1][ch%65536], x]))),
+    rot:eixos.map(e=>D.dimensoes[e.d].rotulo)} : null;
   // O universo padrao e o Brasil inteiro, onde o desmatamento e 0,23% — ler a
   // fracao do desmatamento e quase sempre o que se quer citar.
   if(TOT_DES===null) TOT_DES=D.recorte.reduce((s,r)=>s+r[r.length-1],0);
   frase(area);
-  const inclusivo=eixos.some(e=>e.m==='som');
-  const so2024=[d1,d2].some(k=>D.dimensoes[k]&&D.dimensoes[k].vazio);
-  const av=document.getElementById('aviso');
-  if(so2024 && universo==='mestre' && estado[7]!==1){
-    av.style.display='block';
-    av.innerHTML='<b>Atenção:</b> aderência e tamanho só foram calculados para os '+
-      '267.102 imóveis do CAR que cruzam o desmatamento de 2024. No Brasil inteiro, '+
-      '73% da área em CAR fica como <i>não avaliado</i> — isso não quer dizer que o '+
-      'imóvel não adira ao fundiário, e sim que a conta não foi feita para ele. '+
-      'Ligue o filtro <b>Desmatamento PRODES 2024</b> ou troque o universo para ler '+
-      'esses dois eixos.';
-  } else if(inclusivo){
-    av.style.display='block';
-    av.innerHTML='Há comparação em <b>somado</b>: nela cada pixel entra em '+
-      '<i>todas</i> as classes a que pertence, então "Grande" já inclui '+
-      '"Pequena + Grande" e a soma passa do total — de propósito, é a resposta '+
-      'para “quanto há de grande ao todo”. Para um total que fecha, volte a '+
-      '<b>separado</b> naquela comparação; aí as sobreposições viram classe própria.';
-  } else if(eixos.length>2 && vis!=='sank'){
-    av.style.display='block';
-    av.innerHTML='Você tem <b>'+eixos.length+' comparações</b>, e só o <b>Sankey</b> desenha mais de duas. Nos outros '+
-      'gráficos as folhas são as próprias combinações: com três eixos elas passam de '+
-      '263 para mais de mil, e a área que cabe num bloco legível <i>cai</i> de 93% '+
-      'para 81% — o excedente vira lasca invisível. Aqui estão sendo mostrados os '+
-      'dois primeiros eixos.';
-  } else { av.style.display='none'; }
+  avisa();
   document.getElementById('kArea').textContent=fmt(area);
   document.getElementById('kPct').textContent=area?(100*area/tot).toFixed(2)+'%':'—';
   document.getElementById('kPctL').textContent =
@@ -461,9 +496,7 @@ function calcula(){
   // Com um estado escolhido há dois denominadores possíveis. Mostrar os dois,
   // nomeados, em vez de escolher um em silêncio.
   if(ufSel){
-    let nac=0, mesmo=0;
-    for(const [v,u,a] of T){ if(!passa(v,u)) continue; nac+=a; if(passaUF(u)) mesmo+=a; }
-    document.getElementById('kNac').textContent = nac?(100*mesmo/nac).toFixed(2)+'%':'—';
+    document.getElementById('kNac').textContent = nac?(100*area/nac).toFixed(2)+'%':'—';
     document.getElementById('kNacL').textContent =
       'deste recorte no Brasil está em '+(ufSel===99?'sem UF':D.ufs[ufSel-1]);
   }
@@ -494,10 +527,39 @@ function calcula(){
       arr=gd.sort((a,b)=>b.valor-a.valor);
     }
   }
-  // Precisa vir antes de desenhar: liga() usa este total para a % da seleção.
+  // Precisa vir antes de desenhar: a dica do gráfico usa este total para a % da seleção.
   window.__ult={arr,area,bruto,multi,modo:m1,eixo:d1,incl,
                 rotEixo:(D.dimensoes[d1]||{}).rotulo||d1};
   desenha(arr,area); tabela(arr,area); montaCalc();
+}
+function avisa(){
+  const d1=dim(0), d2=eixos.length>1?dim(1):'—';
+  const inclusivo=eixos.some(e=>e.m==='som');
+  const so2024=[d1,d2].some(k=>D.dimensoes[k]&&D.dimensoes[k].vazio);
+  const av=document.getElementById('aviso');
+  if(so2024 && universo==='mestre' && estado[7]!==1){
+    av.style.display='block';
+    av.innerHTML='<b>Atenção:</b> aderência e tamanho só foram calculados para os '+
+      '267.102 imóveis do CAR que cruzam o desmatamento de 2024. No Brasil inteiro, '+
+      '73% da área em CAR fica como <i>não avaliado</i> — isso não quer dizer que o '+
+      'imóvel não adira ao fundiário, e sim que a conta não foi feita para ele. '+
+      'Ligue o filtro <b>Desmatamento PRODES 2024</b> ou troque o universo para ler '+
+      'esses dois eixos.';
+  } else if(inclusivo){
+    av.style.display='block';
+    av.innerHTML='Há comparação em <b>somado</b>: nela cada pixel entra em '+
+      '<i>todas</i> as classes a que pertence, então "Grande" já inclui '+
+      '"Pequena + Grande" e a soma passa do total — de propósito, é a resposta '+
+      'para “quanto há de grande ao todo”. Para um total que fecha, volte a '+
+      '<b>separado</b> naquela comparação; aí as sobreposições viram classe própria.';
+  } else if(eixos.length>2 && vis!=='sank'){
+    av.style.display='block';
+    av.innerHTML='Você tem <b>'+eixos.length+' comparações</b>, e só o <b>Sankey</b> desenha mais de duas. Nos outros '+
+      'gráficos as folhas são as próprias combinações: com três eixos elas passam de '+
+      '263 para mais de mil, e a área que cabe num bloco legível <i>cai</i> de 93% '+
+      'para 81% — o excedente vira lasca invisível. Aqui estão sendo mostrados os '+
+      'dois primeiros eixos.';
+  } else { av.style.display='none'; }
 }
 function squarify(itens,x,y,w,h){
   // divisao simples por faixas: suficiente e estavel para leitura
@@ -531,7 +593,6 @@ function desenha(arr,area){
                  :vis==='sun'?sunburst(arr)
                  :vis==='anel'?pizzaAnel(arr)
                  :sankey(arr);
-  liga();
 }
 function treemap(arr){
   const blocos=squarify(arr,4,4,892,552); let o='';
@@ -661,11 +722,12 @@ function sankey(arr){
   });
   const rotula=(lista,P,x,lado,cores)=>{
     const cen=lista.map(n=>P[n.nome][0]+P[n.nome][1]/2);
-    const blo=lista.map(()=>24);
+    const blo=lista.map(n=>24+(quebra(n.nome,30).length-1)*22);
     const nv=descolideJS(cen,blo,4,556);
     lista.forEach((n,j)=>{
       const [y,h]=P[n.nome];
       o+=`<rect class="it" data-n="${n.nome}" data-v="${n.valor}" x="${x}" y="${y.toFixed(1)}" width="${NL}" height="${h.toFixed(1)}" fill="${cores?PAL[j%PAL.length]:'#8FA6A0'}" rx="2"/>`;
+      if(nv[j]===null) return;                 // não coube: sem rótulo
       const tx=lado==='esq'?x-8:x+NL+8, anc=lado==='esq'?'end':'start';
       if(Math.abs(nv[j]-cen[j])>1.5){
         const g0=lado==='esq'?x-2:x+NL+2, g1=tx+(lado==='esq'?3:-3);
@@ -680,57 +742,6 @@ function sankey(arr){
   rotula(der,PD,X1,'dir',false);
   return o;
 }
-function sankey3(arr, fl23){
-  const NL=13,SUP=20,INF=20,ALT=560,XS=[176,440,706];
-  const tot=arr.reduce((s,i)=>s+i.valor,0); if(!tot) return '';
-  const m2=new Map(), m3=new Map();
-  for(const it of arr) for(const f of (it.filhos||[]))
-    m2.set(f.nome,(m2.get(f.nome)||0)+f.valor);
-  for(const [ch,v] of fl23){ const k3=ch.split('\u0000')[1];
-    m3.set(k3,(m3.get(k3)||0)+v); }
-  const ord=m=>[...m.entries()].map(([nome,valor])=>({nome,valor})).sort((a,b)=>b.valor-a.valor);
-  const C=[arr,ord(m2),ord(m3)];
-  const VAO=6;
-  const esc=Math.min(...C.map(c=>(ALT-SUP-INF-VAO*(c.length-1))/tot));
-  const P=C.map(c=>{let y=SUP,p={};for(const n of c){const h=Math.max(n.valor*esc,1.4);p[n.nome]=[y,h];y+=h+VAO;}return p;});
-  let o='';
-  const cinta=(x0,y0,x1,y1,h,cor)=>{const xm=(x0+x1)/2;
-    return `<path class="it" d="M${x0},${y0} C${xm},${y0} ${xm},${y1} ${x1},${y1} `+
-           `L${x1},${y1+h} C${xm},${y1+h} ${xm},${y0+h} ${x0},${y0+h} Z" `+
-           `fill="${cor}" fill-opacity="0.42"`;};
-  let oo={},od={};
-  C[0].forEach((it,i)=>{ oo[it.nome]=0; const cor=PAL[i%PAL.length];
-    for(const f of (it.filhos||[]).slice().sort((a,b)=>b.valor-a.valor)){
-      od[f.nome]=od[f.nome]||0; const h=f.valor*esc;
-      o+=cinta(XS[0]+NL,P[0][it.nome][0]+oo[it.nome],XS[1],P[1][f.nome][0]+od[f.nome],h,cor)+
-         ` data-n="${it.nome} › ${f.nome}" data-v="${f.valor}" data-p="${it.valor}"></path>`;
-      oo[it.nome]+=h; od[f.nome]+=h; }});
-  let o2={},o3={};
-  const porK2=new Map();
-  for(const [ch,v] of fl23){const [a,b]=ch.split('\u0000');
-    if(!porK2.has(a)) porK2.set(a,[]); porK2.get(a).push({nome:b,valor:v});}
-  C[1].forEach((n2,i)=>{ o2[n2.nome]=0;
-    for(const f of (porK2.get(n2.nome)||[]).sort((a,b)=>b.valor-a.valor)){
-      o3[f.nome]=o3[f.nome]||0; const h=f.valor*esc;
-      o+=cinta(XS[1]+NL,P[1][n2.nome][0]+o2[n2.nome],XS[2],P[2][f.nome][0]+o3[f.nome],h,PAL[(i+3)%PAL.length])+
-         ` data-n="${n2.nome} › ${f.nome}" data-v="${f.valor}" data-p="${n2.valor}"></path>`;
-      o2[n2.nome]+=h; o3[f.nome]+=h; }});
-  C.forEach((col,i)=>{
-    const cen=col.map(n=>P[i][n.nome][0]+P[i][n.nome][1]/2);
-    const nv=descolideJS(cen,col.map(()=>22));
-    col.forEach((n,j)=>{ const [y,h]=P[i][n.nome];
-      o+=`<rect class="it" data-n="${n.nome}" data-v="${n.valor}" x="${XS[i]}" y="${y.toFixed(1)}" `+
-         `width="${NL}" height="${h.toFixed(1)}" fill="${i===0?PAL[j%PAL.length]:'#8FA6A0'}" rx="2"/>`;
-      const esq=i===0, tx=esq?XS[i]-7:XS[i]+NL+7, anc=esq?'end':'start';
-      if(Math.abs(nv[j]-cen[j])>1.5)
-        o+=`<path d="M${esq?XS[i]-2:XS[i]+NL+2},${cen[j].toFixed(1)} L${tx+(esq?3:-3)},${nv[j].toFixed(1)}" stroke="var(--linha)" stroke-width="0.7" fill="none"/>`;
-      const nm=n.nome.length>26?n.nome.slice(0,25)+'…':n.nome;
-      o+=`<text x="${tx}" y="${(nv[j]-2).toFixed(1)}" text-anchor="${anc}" font-size="10" fill="var(--tinta)">${nm}</text>`;
-      o+=`<text x="${tx}" y="${(nv[j]+9).toFixed(1)}" text-anchor="${anc}" font-size="9" fill="var(--suave)">${fmt(n.valor)} ha</text>`;
-    });});
-  return o;
-}
-
 function sankeyN(S){
   const N=S.cols.length, NL=Math.max(7,14-N), SUP=26, INF=18, ALT=560, W=900;
   const marg=N<=3?176:(N<=5?120:96);
@@ -853,24 +864,23 @@ function descolideJS(c,a,topo,base){
   return y;
 }
 
-function liga(){
+// Um ouvinte só no <svg>: ligar dois em cada elemento, a cada desenho, chegava
+// a quatro mil ouvintes no Sankey. O mais interno .it ganha, como antes, para o
+// sub-bloco do treemap não ser coberto pelo bloco-pai.
+document.getElementById('g').addEventListener('mousemove',ev=>{
+  const el=ev.target.closest&&ev.target.closest('#g .it');
+  if(!el){ tip.style.opacity=0; return; }
   const sel=window.__ult?window.__ult.area:0;
-  document.querySelectorAll('#g .it').forEach(el=>{
-    el.addEventListener('mousemove',ev=>{
-      // O sub-bloco fica dentro do bloco-pai: sem parar a propagacao o evento
-      // sobe e o handler do pai sobrescreve a dica, escondendo o uso do solo.
-      ev.stopPropagation();
-      const v=+el.dataset.v, n=el.dataset.n;
-      const pai=+(el.dataset.p||0);
-      let h=`<b>${n.replace(' › ','</b> › <b>')}</b><br>${fmt(v)} ha`;
-      if(sel) h+=`<br><span style="color:var(--suave)">${(100*v/sel).toFixed(2)}% da seleção</span>`;
-      if(pai) h+=`<br><span style="color:var(--suave)">${(100*v/pai).toFixed(1)}% de ${n.split(' › ')[0]}</span>`;
-      tip.innerHTML=h;
-      tip.style.opacity=1;tip.style.left=Math.min(ev.clientX+14,innerWidth-320)+'px';
-      tip.style.top=(ev.clientY+14)+'px';});
-    el.addEventListener('mouseleave',()=>tip.style.opacity=0);
-  });
-}
+  const v=+el.dataset.v, n=el.dataset.n;
+  const pai=+(el.dataset.p||0);
+  let h=`<b>${n.replace(' › ','</b> › <b>')}</b><br>${fmt(v)} ha`;
+  if(sel) h+=`<br><span style="color:var(--suave)">${(100*v/sel).toFixed(2)}% da seleção</span>`;
+  if(pai) h+=`<br><span style="color:var(--suave)">${(100*v/pai).toFixed(1)}% de ${n.split(' › ')[0]}</span>`;
+  tip.innerHTML=h;
+  tip.style.opacity=1;tip.style.left=Math.min(ev.clientX+14,innerWidth-320)+'px';
+  tip.style.top=(ev.clientY+14)+'px';
+});
+document.getElementById('g').addEventListener('mouseleave',()=>tip.style.opacity=0);
 // Selecao por clique na tabela. Pedida pelo time: a pergunta real quase nunca
 // e uma linha, e sim um conjunto delas -- "quanto da e so aderente", "quanto e
 // misto". Antes isso so dava para fazer em planilha. Por isso TODAS as linhas
@@ -906,10 +916,10 @@ function aplicaURL(){
   for(const c of (p.get('c')||'').split(',').filter(Boolean)) classesSel.add(+c);
   for(const b of (p.get('k')||'').split(',').filter(Boolean)) calcSel.add(+b);
   const e=(p.get('e')||'').split(',').filter(Boolean)
-    .map(x=>({d:x.split(':')[0], m:x.split(':')[1]||'sep'}))
+    .map(x=>({d:x.split(':')[0], m:MODOS.includes(x.split(':')[1])?x.split(':')[1]:'sep'}))
     .filter(x=>D.dimensoes[x.d]);
   if(e.length) eixos=e;
-  if(p.get('g')) vis=p.get('g');
+  if(['tree','sun','anel','sank'].includes(p.get('g'))) vis=p.get('g');
   return true;
 }
 
@@ -952,20 +962,22 @@ function montaCalc(){
     for(const [g,bs] of D.grupos) if(grupos.has(g))
       for(const [b] of bs) if(!calcSel.has(b)) irmaos.push(b);
 
-    const T=D[universo];
+    const T=D[universo], ok=filtro();
     let uniao=0, inter=0, soEstas=0;
-    const iso=new Map(bits.map(b=>[b,0]));
-    for(const [v,u,a] of T){
-      if(!passaUF(u)||!passa(v,u)) continue;
+    const mb=bits.map(bitMask), somaB=bits.map(()=>0);
+    let iv=0, iu=0;
+    for(const b of irmaos){ const [x,y]=bitMask(b); iv|=x; iu|=y; }
+    for(let i=0;i<T.length;i++){
+      const r=T[i], v=r[0], u=r[1], a=r[2];
+      if(!passaUF(u)||!ok(v,u)) continue;
       let k=0;
-      for(const b of bits) if(temBit(v,u,b)){k++; iso.set(b,iso.get(b)+a);}
+      for(let j=0;j<mb.length;j++) if((v&mb[j][0])||(u&mb[j][1])){k++; somaB[j]+=a;}
       if(!k) continue;
       uniao+=a;
       if(k===bits.length) inter+=a;
-      let outro=false;
-      for(const b of irmaos) if(temBit(v,u,b)){outro=true;break;}
-      if(!outro) soEstas+=a;
+      if(!((v&iv)||(u&iu))) soEstas+=a;
     }
+    const iso=new Map(bits.map((b,j)=>[b,somaB[j]]));
     const soma=[...iso.values()].reduce((x,y)=>x+y,0);
     const dupla=soma-uniao;
     const pc=x=>(100*x/U.area).toFixed(2);
@@ -1086,60 +1098,41 @@ function tabela(arr,area){
   if(mi) mi.onclick=()=>{verIrrelevantes=!verIrrelevantes; tabela(arr,area);};
 }
 
-function selects(){
-  // No universo do recorte, "Desmatamento 2024" nao separa nada: todo pixel ja
-  // tem o bit. Some da lista em vez de virar um eixo de um valor so.
-  const guarda={d1:'territorial',d2:'mapbiomas',d3:'—'};
-  for(const id of ['d1','d2','d3']){
-    const el=document.getElementById(id);
-    if(el.value) guarda[id]=el.value;
-  }
-  for(const id of ['d1','d2','d3']){
-    const el=document.getElementById(id);
-    el.innerHTML = id==='d1' ? '' : '<option value="—">— nada —</option>';
-    for(const [k,v] of Object.entries(D.dimensoes)){
-      if(k==='prodes' && universo==='recorte') continue;
-      el.insertAdjacentHTML('beforeend',`<option value="${k}">${v.rotulo}</option>`);
-    }
-    const quer=guarda[id];
-    el.value = [...el.options].some(o=>o.value===quer) ? quer
-             : (id==='d1'?'territorial':'—');
-    el.onchange=calcula;
-  }
-  const gd=document.querySelector('.cx[data-grupo="Desmatamento"]');
-  if(gd) gd.style.display = universo==='recorte' ? 'none' : '';
-  const kd=document.getElementById('kDes').parentElement;
-  kd.style.display = universo==='recorte' ? 'none' : '';
-}
 for(const [id,v] of [['vTree','tree'],['vSun','sun'],['vAnel','anel'],['vSank','sank']])
   document.getElementById(id).onclick=()=>{vis=v;sincV();};
-function sincV(){
+function marcaV(){
   for(const [id,v] of [['vTree','tree'],['vSun','sun'],['vAnel','anel'],['vSank','sank']])
     document.getElementById(id).setAttribute('aria-pressed',vis===v);
-  sincLeitura();}
+}
+function sincV(){
+  marcaV();
+  // Trocar de gráfico não muda os números: basta redesenhar o que já foi
+  // calculado. Só refaz a conta se o Sankey obrigou a mudar alguma leitura.
+  const mudou=sincLeitura();
+  const U=window.__ult;
+  if(mudou||!U||agendado) return agenda();
+  avisa(); desenha(U.arr,U.area);
+}
 document.getElementById('uMestre').onclick=()=>{universo='mestre';sincU();};
 document.getElementById('uRecorte').onclick=()=>{universo='recorte';sincU();};
-function sincU(){uMestre.setAttribute('aria-pressed',universo==='mestre');
-  uRecorte.setAttribute('aria-pressed',universo==='recorte');
+function marcaU(){
+  document.getElementById('uMestre').setAttribute('aria-pressed',universo==='mestre');
+  document.getElementById('uRecorte').setAttribute('aria-pressed',universo==='recorte');
+  // No recorte todo pixel já é desmatamento: o filtro não separa nada, e o chip
+  // ficava com "+" sem estar valendo.
   if(universo==='recorte') delete estado[7];
-  montaEixos(); sincUF(); return;
-  classesSel.clear();
-  document.getElementById('fclasses').innerHTML='';
-  const fc=document.getElementById('fclasses');
-  const usadas=new Set(D[universo].filter(([v,u])=>passaUF(u)).map(([v])=>v&127));
-  [...usadas].sort((a,b)=>a-b).forEach(cod=>{
-    const nome=(D.classes[cod]||['Classe '+cod])[0];
-    const s=document.createElement('span'); s.className='chip'; s.dataset.e=0;
-    s.innerHTML=`<span class="m">·</span>${nome}`;
-    s.onclick=()=>{const on=s.dataset.e==='1'; s.dataset.e=on?0:1;
-      s.querySelector('.m').textContent=on?'·':'+';
-      on?classesSel.delete(cod):classesSel.add(cod); calcula();};
-    fc.appendChild(s);});
-  calcula();}
+  const gd=document.querySelector('.cx[data-grupo="Desmatamento"]');
+  if(gd) gd.style.display = universo==='recorte' ? 'none' : '';
+  sincChips();
+}
+function sincU(){
+  marcaU(); montaEixos(); classesSel.clear(); sincUF(); agenda();
+}
 document.getElementById('limpar').onclick=()=>{
   for(const k in estado) delete estado[k]; classesSel.clear();
-  document.querySelectorAll('.chip').forEach(c=>{c.dataset.e=0;c.querySelector('.m').textContent='·';});
-  calcula();};
+  sincChips();
+  document.querySelectorAll('#fclasses .chip').forEach(c=>{c.dataset.e=0;c.querySelector('.m').textContent='·';});
+  agenda();};
 document.getElementById('link').onclick=()=>{
   const u=estadoParaURL();
   const b=document.getElementById('link');
@@ -1175,7 +1168,8 @@ function montaUF(){
   const sv=[...tot.entries()].filter(([k])=>k<1||k>27).reduce((s_,[,v])=>s_+v,0);
   if(sv>0) sel.insertAdjacentHTML('beforeend',
     `<option value="99">sem UF (costa) — ${fmt(sv)} ha</option>`);
-  sel.onchange=()=>{ ufSel=+sel.value; sincUF(); };
+  sel.value=String(ufSel);
+  sel.onchange=()=>{ ufSel=+sel.value; classesSel.clear(); sincUF(); agenda(); };
 }
 function sincUF(){
   const info=document.getElementById('ufInfo');
@@ -1184,18 +1178,7 @@ function sincUF(){
   else { info.textContent=`Só ${D.ufs[ufSel-1]}. Os percentuais passam a ser do estado; `+
          `o cartão "do Brasil" mostra o peso nacional.`; }
   document.getElementById('kNacBox').style.display = ufSel?'':'none';
-  classesSel.clear(); document.getElementById('fclasses').innerHTML='';
-  const fc=document.getElementById('fclasses');
-  const usadas=new Set(D[universo].filter(([v,u])=>passaUF(u)).map(([v])=>v&127));
-  [...usadas].sort((a,b)=>a-b).forEach(cod=>{
-    const nome=(D.classes[cod]||['Classe '+cod])[0];
-    const sp=document.createElement('span'); sp.className='chip'; sp.dataset.e=0;
-    sp.innerHTML=`<span class="m">·</span>${nome}`;
-    sp.onclick=()=>{const on=sp.dataset.e==='1'; sp.dataset.e=on?0:1;
-      sp.querySelector('.m').textContent=on?'·':'+';
-      on?classesSel.delete(cod):classesSel.add(cod); calcula();};
-    fc.appendChild(sp);});
-  calcula();
+  montaClasses();
 }
 
 // ---- baixar o gráfico em PNG ---------------------------------------------
@@ -1253,18 +1236,10 @@ document.getElementById('baixarPNG').onclick=baixarPNG;
     'próprio botão de leitura ao lado. Da terceira em diante só o Sankey desenha.',
     'Separar por');
 })();
-const veioDaURL = aplicaURL();
-montaFiltros(); montaEixos(); montaUF(); sincLeitura(); sincUF();
-if(veioDaURL){
-  // os chips sao desenhados a partir de 'estado', mas o visual de cada um vem
-  // do dataset -- sem isto eles nasceriam sem o + e sem o -
-  document.querySelectorAll('#filtros .chip').forEach(c=>{
-    const e=estado[c.dataset.bit]||0; c.dataset.e=e;
-    c.querySelector('.m').textContent = e===0?'·':(e===1?'+':'−');});
-  document.getElementById('uMestre').setAttribute('aria-pressed', universo==='mestre');
-  document.getElementById('uRecorte').setAttribute('aria-pressed', universo==='recorte');
-  calcula();
-}
+aplicaURL();
+// Tudo o que o link trouxe (estado, gráfico, classes) é pintado antes da única
+// conta da abertura.
+montaFiltros(); marcaU(); marcaV(); montaUF(); sincLeitura(); sincUF(); calcula();
 
 // Autoconferencia: abra o arquivo com ?validar no fim do endereco.
 // Refaz em JavaScript as combinacoes calculadas em pandas e compara.
@@ -1277,10 +1252,10 @@ if(location.search.includes('validar')){
     for(const b of t.neg) estado[b]=2;
     for(const x of t.cls) classesSel.add(x);
     universo=t.u;
-    let area=0,comb=0;
+    let area=0,comb=0; const ok=filtro();
     for(const [v,u,a] of D[t.u]){ if(t.uf&&D.ufs[(u&31)-1]!==t.uf) continue;
       if(!t.uf&&!passaUF(u)) continue;
-      if(!passa(v,u)) continue; area+=a; comb++; }
+      if(!ok(v,u)) continue; area+=a; comb++; }
     if(comb===t.c) okC++;
     if(Math.round(area)===Math.round(t.a)) okA++;
     else ruins.push(`${t.u} req=[${t.req}] neg=[${t.neg}]: ${Math.round(area)} ≠ ${Math.round(t.a)}`);
@@ -1295,8 +1270,8 @@ if(location.search.includes('validar')){
     for(let j=0;j<i%3;j++) estado[bs[(i+j)%bs.length]]=1;
     universo=(i%3===0)?'recorte':'mestre';
     const d1=dims[i%dims.length], d2=dims[(i+3)%dims.length];
-    let area=0; const mp=new Map();
-    for(const [v,u,a] of D[universo]){ if(!passaUF(u)||!passa(v,u)) continue; area+=a;
+    let area=0; const mp=new Map(); const ok=filtro();
+    for(const [v,u,a] of D[universo]){ if(!passaUF(u)||!ok(v,u)) continue; area+=a;
       const k1=rotuloDim(d1,v,u), k2=rotuloDim(d2,v,u);
       if(!mp.has(k1)) mp.set(k1,{t:0,f:new Map()});
       const o=mp.get(k1); o.t+=a; o.f.set(k2,(o.f.get(k2)||0)+a); }
@@ -1314,9 +1289,7 @@ if(location.search.includes('validar')){
   classesSel.clear();
   Object.assign(estado,guarda.e); guarda.c.forEach(x=>classesSel.add(x));
   universo=guarda.u;
-  document.querySelectorAll('.chip').forEach(c=>{
-    const b=c.dataset.bit, e=(b!==undefined?estado[b]:0)||0;
-    c.dataset.e=e; c.querySelector('.m').textContent=e===0?'·':(e===1?'+':'−');});
+  sincChips();
   document.getElementById('uMestre').setAttribute('aria-pressed',universo==='mestre');
   document.getElementById('uRecorte').setAttribute('aria-pressed',universo==='recorte');
   calcula();
