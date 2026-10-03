@@ -162,8 +162,12 @@ separadamente, a área só delas sem outra categoria dos mesmos grupos, e como a
 nome e apaga o resto: nas barras, a mesma categoria acende em todas as barras;
 no Sankey, só os fluxos que saem ou chegam ao nó; no gráfico de sobreposições,
 as colunas que contêm a categoria. Clicando em mais de um, todos ficam em foco.
-Acima do gráfico aparecem o total de cada um e, quando dá para somar sem contar
-duas vezes, a área das escolhidas **juntas** (cada hectare uma vez). Passar o
+Acima do gráfico aparecem o total de cada um e a área das escolhidas **juntas**
+(cada hectare uma vez). Quando elas se sobrepõem, a conta aparece inteira:
+soma simples − sobreposição = juntas; com duas, também "só A · nas duas · só B".
+A conta é feita direto nos dados, como a da calculadora, então vale também com
+comparação em "somado". Os números mostrados fecham entre si: a soma é a dos
+valores arredondados de cada um. Passar o
 mouse na legenda mostra uma prévia; Esc ou "limpar foco" desfaz. O foco entra
 no link copiado e no PNG: com foco ligado, a imagem sai como a tela (o resto
 apagado) e com um rodapé "Em foco" que traz o total de cada item e o "Juntas";
