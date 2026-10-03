@@ -158,6 +158,22 @@ interseção), a área que seria contada duas vezes se as áreas fossem somadas
 separadamente, a área só delas sem outra categoria dos mesmos grupos, e como a
 área ocupada se divide.
 
+**Foco.** Clicar numa parte do gráfico ou num item da legenda destaca aquele
+nome e apaga o resto: nas barras, a mesma categoria acende em todas as barras;
+no Sankey, só os fluxos que saem ou chegam ao nó; no gráfico de sobreposições,
+as colunas que contêm a categoria. Clicando em mais de um, todos ficam em foco.
+Acima do gráfico aparecem o total de cada um e, quando dá para somar sem contar
+duas vezes, a área das escolhidas **juntas** (cada hectare uma vez). Passar o
+mouse na legenda mostra uma prévia; Esc ou "limpar foco" desfaz. O foco entra
+no link copiado e **não entra no PNG**: a imagem baixada é sempre o gráfico
+inteiro, igual com ou sem foco.
+
+No tema escuro a moldura ganha um brilho leve (bordas, cartões, botão ativo) e o
+que está em foco brilha; no claro, vira uma sombra discreta. As cores dos dados
+não mudam. Ao trocar filtro ou gráfico, as barras crescem e o resto surge em
+meio segundo, com os números aparecendo só no fim, já com o valor final; quem
+pede "reduzir movimento" no sistema não vê animação.
+
 O seletor **Tema**, no alto da página, escolhe claro, escuro ou automático — o
 automático segue o modo claro ou escuro do computador ou do celular.
 
