@@ -177,6 +177,17 @@ para a direita, coluna por coluna; sunburst e pizza se revelam num giro a partir
 do topo; o treemap surge com um zoom curto. Os números aparecem só no fim, já
 com o valor final; quem pede "reduzir movimento" no sistema não vê animação.
 
+**Cores.** Cada categoria tem cor fixa: a mesma em qualquer filtro, estado ou
+gráfico. O uso do solo usa sempre as cores do MapBiomas — o verde fica só para
+vegetação; o vermelho-alaranjado, só para o desmatamento; ausência ("Nenhum",
+"Não avaliado", "Fora de UC") é cinza claro. As demais categorias usam seis
+cores sem verde e sem vermelho, escolhidas para continuarem distintas entre si
+em qualquer par para quem tem daltonismo; onde há mais categorias que cores, a
+mesma cor em tons diferentes marca o que é do mesmo tipo (UC de proteção
+integral, UC de uso sustentável, assentamentos). Uma combinação, como
+"CAR + Terra Indígena", aparece listrada com as cores das categorias que a
+formam.
+
 O seletor **Tema**, no alto da página, escolhe claro, escuro ou automático — o
 automático segue o modo claro ou escuro do computador ou do celular.
 
