@@ -170,9 +170,11 @@ inteiro, igual com ou sem foco.
 
 No tema escuro a moldura ganha um brilho leve (bordas, cartões, botão ativo) e o
 que está em foco brilha; no claro, vira uma sombra discreta. As cores dos dados
-não mudam. Ao trocar filtro ou gráfico, as barras crescem e o resto surge em
-meio segundo, com os números aparecendo só no fim, já com o valor final; quem
-pede "reduzir movimento" no sistema não vê animação.
+não mudam. Ao trocar filtro ou gráfico, cada gráfico entra do seu jeito: as
+barras crescem; no Sankey os nós crescem e os fluxos se desenham da esquerda
+para a direita, coluna por coluna; sunburst e pizza se revelam num giro a partir
+do topo; o treemap surge com um zoom curto. Os números aparecem só no fim, já
+com o valor final; quem pede "reduzir movimento" no sistema não vê animação.
 
 O seletor **Tema**, no alto da página, escolhe claro, escuro ou automático — o
 automático segue o modo claro ou escuro do computador ou do celular.
