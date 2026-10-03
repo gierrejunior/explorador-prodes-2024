@@ -20,7 +20,10 @@ em JavaScript as combinações calculadas em pandas e mostra o placar.
 | aderência ao fundiário | medida por **parcela** | medida por **imóvel**, com as parcelas dissolvidas |
 | unidade de conservação | esfera × grupo | **mais as 12 categorias do SNUC** |
 
-**Saíram desta versão:** APP, Reserva Legal e parcela SNCI pública.
+**Saiu desta versão:** parcela SNCI pública. **APP e Reserva Legal** declaradas
+no CAR voltaram, junto com a **sobreposição entre imóveis do CAR** — em duas
+leituras que não se somam: a área sobreposta mede o chão; o imóvel com
+sobreposição mede o imóvel inteiro.
 
 O filtro do CAR mantém 8.268.132 de 8.349.966 imóveis, 99,0% dos registros — mas remove assentamentos e territórios tradicionais, que concentram desmatamento. É por isso que a parcela do desmatamento "dentro do CAR" cai em relação à versão anterior.
 
