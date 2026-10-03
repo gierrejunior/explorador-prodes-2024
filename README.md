@@ -165,8 +165,9 @@ as colunas que contêm a categoria. Clicando em mais de um, todos ficam em foco.
 Acima do gráfico aparecem o total de cada um e, quando dá para somar sem contar
 duas vezes, a área das escolhidas **juntas** (cada hectare uma vez). Passar o
 mouse na legenda mostra uma prévia; Esc ou "limpar foco" desfaz. O foco entra
-no link copiado e **não entra no PNG**: a imagem baixada é sempre o gráfico
-inteiro, igual com ou sem foco.
+no link copiado e no PNG: com foco ligado, a imagem sai como a tela (o resto
+apagado) e com um rodapé "Em foco" que traz o total de cada item e o "Juntas";
+sem foco, o PNG é o gráfico inteiro, como sempre.
 
 No tema escuro a moldura ganha um brilho leve (bordas, cartões, botão ativo) e o
 que está em foco brilha; no claro, vira uma sombra discreta. As cores dos dados
