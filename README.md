@@ -160,18 +160,25 @@ interseção), a área que seria contada duas vezes se as áreas fossem somadas
 separadamente, a área só delas sem outra categoria dos mesmos grupos, e como a
 área ocupada se divide.
 
-**Ao clicar no gráfico: Destacar ou Filtrar.** Uma chave acima do gráfico
-escolhe o que o clique faz. **Filtrar** filtra a página inteira (cartões,
-gráfico, tabela, calculadora) pela parte clicada, pelo rótulo exato — clicar em
-"CAR + Terra Indígena" filtra só essa combinação —, e os cliques se acumulam
-como os filtros da esquerda: OU na mesma comparação, E entre comparações. O
-filtro aparece em chips acima do gráfico, na frase do topo e no link copiado;
-"Limpar todos os filtros" também o tira. No uso do solo, o clique marca o
-próprio filtro de uso do solo da esquerda. Ao filtrar, o gráfico novo nasce da parte
-clicada e cresce até ocupar o quadro (um zoom curto, só vertical nas barras e
-no Sankey); a seta **← voltar ao gráfico anterior** desfaz o último clique e
-encolhe de volta para onde se estava. O zoom não muda o PNG e some para quem
-pede "reduzir movimento" no sistema.
+**Destacar e filtrar.** São duas coisas, cada uma com seu lugar:
+
+- **Clique** destaca: acende a parte clicada e apaga o resto, sem mudar a
+  página. Dá para destacar várias; o resultado aparece no **Em foco**, logo
+  acima do gráfico.
+- **Filtrar por isto** (botão do Em foco) ou **duplo clique** filtram: a página
+  inteira (cartões, gráfico, tabela, calculadora) passa a ser só aquilo, com um
+  zoom curto partindo da parte escolhida. O filtro vira um passo da **trilha**
+  acima do gráfico — `Brasil inteiro › Em CAR e Floresta › CAR + Terra Indígena`
+  —, com **← voltar** e cada passo clicável para voltar direto a ele; o destaque
+  esvazia ao filtrar, para a mesma coisa nunca estar nos dois lugares.
+
+Cada passo acumula com E sobre os anteriores; dentro de um passo, nomes da
+mesma comparação somam com OU. O filtro é pelo rótulo exato — "CAR + Terra
+Indígena" filtra só essa combinação —; no uso do solo, ele estreita o filtro de
+uso do solo da esquerda. As porcentagens do destaque dizem sobre o quê são:
+"1,8% de “Em CAR e Floresta”" dentro de um filtro, "da seleção" fora dele. A
+trilha entra no link copiado; "Limpar todos os filtros" também a tira. O zoom não
+muda o PNG e some para quem pede "reduzir movimento" no sistema.
 
 **Destacar** segue a mesma regra de acumular: destacar "Sem parcela nenhuma" e
 "Pastagem" acende só a Pastagem que está em Sem parcela e dá a conta desse
