@@ -167,7 +167,11 @@ gráfico, tabela, calculadora) pela parte clicada, pelo rótulo exato — clicar
 como os filtros da esquerda: OU na mesma comparação, E entre comparações. O
 filtro aparece em chips acima do gráfico, na frase do topo e no link copiado;
 "Limpar todos os filtros" também o tira. No uso do solo, o clique marca o
-próprio filtro de uso do solo da esquerda.
+próprio filtro de uso do solo da esquerda. Ao filtrar, o gráfico novo nasce da parte
+clicada e cresce até ocupar o quadro (um zoom curto, só vertical nas barras e
+no Sankey); a seta **← voltar ao gráfico anterior** desfaz o último clique e
+encolhe de volta para onde se estava. O zoom não muda o PNG e some para quem
+pede "reduzir movimento" no sistema.
 
 **Destacar** segue a mesma regra de acumular: destacar "Sem parcela nenhuma" e
 "Pastagem" acende só a Pastagem que está em Sem parcela e dá a conta desse
