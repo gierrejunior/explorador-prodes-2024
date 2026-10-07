@@ -178,7 +178,10 @@ separadamente, a área só delas sem outra categoria dos mesmos grupos, e como a
   zoom curto partindo da parte escolhida. O filtro vira um passo da **trilha**
   acima do gráfico — `Brasil inteiro › Em CAR e Floresta › CAR + Terra Indígena`
   —, com **← voltar** e cada passo clicável para voltar direto a ele; o destaque
-  esvazia ao filtrar, para a mesma coisa nunca estar nos dois lugares.
+  esvazia ao filtrar, para a mesma coisa nunca estar nos dois lugares. Ao
+  voltar, a tela volta como estava, com o destaque de antes de filtrar (se o
+  filtro foi por duplo clique, acende o que foi filtrado); isso também vai no
+  link.
 
 Cada passo acumula com E sobre os anteriores; dentro de um passo, nomes da
 mesma comparação somam com OU. O filtro é pelo rótulo exato — "CAR + Terra
