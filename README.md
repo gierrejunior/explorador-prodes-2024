@@ -160,6 +160,22 @@ interseção), a área que seria contada duas vezes se as áreas fossem somadas
 separadamente, a área só delas sem outra categoria dos mesmos grupos, e como a
 área ocupada se divide.
 
+**Ao clicar no gráfico: Destacar ou Filtrar.** Uma chave acima do gráfico
+escolhe o que o clique faz. **Filtrar** filtra a página inteira (cartões,
+gráfico, tabela, calculadora) pela parte clicada, pelo rótulo exato — clicar em
+"CAR + Terra Indígena" filtra só essa combinação —, e os cliques se acumulam
+como os filtros da esquerda: OU na mesma comparação, E entre comparações. O
+filtro aparece em chips acima do gráfico, na frase do topo e no link copiado;
+"Limpar todos os filtros" também o tira. No uso do solo, o clique marca o
+próprio filtro de uso do solo da esquerda.
+
+**Destacar** segue a mesma regra de acumular: destacar "Sem parcela nenhuma" e
+"Pastagem" acende só a Pastagem que está em Sem parcela e dá a conta desse
+caminho (294.630 ha no desmatamento de 2024). No Sankey de três ou mais colunas
+o destaque atravessa todas elas: o fluxo do Sankey só sabe o par de colunas
+vizinhas, então a parte de cada fluxo que pertence ao caminho é recalculada nas
+linhas e desenhada por cima, com a largura certa.
+
 **Foco.** Clicar numa parte do gráfico ou num item da legenda destaca aquele
 nome e apaga o resto: nas barras, a mesma categoria acende em todas as barras;
 no Sankey, só os fluxos que saem ou chegam ao nó; no gráfico de sobreposições,
