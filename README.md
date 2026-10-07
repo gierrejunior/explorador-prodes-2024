@@ -151,7 +151,9 @@ Além de treemap, sunburst, pizza e Sankey, há três gráficos:
   tamanho não entram: só existem dentro do desmatamento e dariam 100% por
   construção.
 
-A **calculadora de sobreposição** recebe categorias de qualquer grupo e mostra,
+A **calculadora de sobreposição** recebe categorias de qualquer grupo — inclusive
+o **uso do solo**, no nível escolhido em Agrupado/Detalhado (duas classes de uso
+do solo nunca se sobrepõem: cada pixel tem uma só) e mostra,
 com os nomes escolhidos: a área ocupada por elas juntas (a união, cada hectare
 uma vez — o número para citar), a área que é de todas ao mesmo tempo (a
 interseção), a área que seria contada duas vezes se as áreas fossem somadas
