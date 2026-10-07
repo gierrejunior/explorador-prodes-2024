@@ -109,6 +109,14 @@ como contar um pixel que pertence a mais de uma classe daquela comparação:
 | **sobreposições juntas** | tudo que se sobrepõe vira a classe "Sobreposição" — mostra QUANTO há de conflito | fecha com o total |
 | **total por classe** | "Grande" já inclui o que divide pixel com "Pequena" — mostra QUANTO há de cada classe | passa do total, de propósito |
 
+A **ordem** das comparações decide o que é nível 1 e nível 2 (ou a primeira
+coluna do Sankey). Para trocar, arraste pela alça **⠿** ao lado do número — com
+mouse ou com o dedo — e solte em cima da comparação cujo lugar ela deve ocupar;
+no teclado, as setas ↑ ↓ sobre a alça fazem o mesmo. Cada comparação leva junto
+o próprio modo de leitura. Os números são os mesmos de ter escolhido as
+comparações nessa ordem; destaque e filtros continuam valendo, e o link copiado
+sai na ordem nova.
+
 Há botões **ⓘ** espalhados pelos controles explicando cada um. O botão
 **Baixar PNG** salva o gráfico como está na tela.
 
