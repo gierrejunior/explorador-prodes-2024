@@ -192,8 +192,19 @@ nome e apaga o resto: nas barras, a mesma categoria acende em todas as barras;
 no Sankey, só os fluxos que saem ou chegam ao nó; no gráfico de sobreposições,
 as colunas que contêm a categoria. Clicando em mais de um, todos ficam em foco.
 Acima do gráfico aparecem o total de cada um e a área das escolhidas **juntas**
-(cada hectare uma vez). Quando elas se sobrepõem, a conta aparece inteira:
-soma simples − sobreposição = juntas; com duas, também "só A · nas duas · só B".
+(cada hectare uma vez). A sobreposição aparece sempre, também quando é zero
+("Sobreposição: 0 ha"), para não se confundir com conta que não foi feita; a
+conta inteira fica em "ver o total de cada um": soma simples − sobreposição =
+juntas; com duas, também "só A · nas duas · só B".
+
+**Tabela e destaque são a mesma coisa.** Clicar numa linha da tabela põe o nome
+no Em foco (o gráfico acende), e destacar no gráfico marca a linha (✓). A linha
+"Σ em foco" traz o mesmo número do Em foco — cada hectare uma vez, mesmo com a
+comparação em "total por classe", em que as linhas se sobrepõem — e embaixo dela,
+a sobreposição. Como faz parte do foco, as linhas marcadas entram no link
+copiado. Clicar no Σ limpa. Com a comparação em "cada combinação" e um eixo que
+admite mais de uma categoria por pixel, a tabela diz também quando a
+sobreposição é 0 ha.
 A conta é feita direto nos dados, como a da calculadora, então vale também com
 comparação em "somado". Os números mostrados fecham entre si: a soma é a dos
 valores arredondados de cada um. Passar o
